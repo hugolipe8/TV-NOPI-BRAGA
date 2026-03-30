@@ -164,7 +164,86 @@
       margin-top: 10px;
     }
 
-    /* ═══════════════════ SLIDES 2 & 4 — RANKING ═══════════════════ */
+    /* ═══════════════════ SLIDE 2 — ÚLTIMAS ANGARIAÇÕES ═══════════════════ */
+    .ult-list {
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+      width: 100%;
+    }
+
+    .ult-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 14px 22px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .ult-ref {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--gold-l);
+      min-width: 110px;
+      flex-shrink: 0;
+      letter-spacing: 0.03em;
+    }
+
+    .ult-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .ult-consultor {
+      font-size: 1.05rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ult-loc {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .ult-right {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .ult-valor {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .ult-badge {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-top: 3px;
+      text-transform: uppercase;
+    }
+
+    .ult-badge.venda  { background: rgba(184,160,106,0.18); color: var(--gold-l);  border: 1px solid rgba(184,160,106,0.35); }
+    .ult-badge.arrend { background: rgba(76,175,80,0.14);   color: #7ed47f;        border: 1px solid rgba(76,175,80,0.3); }
+
+    .ult-data {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* ═══════════════════ SLIDES 3 & 5 — RANKING ═══════════════════ */
     .ranking-wrap {
       width: 100%;
       max-width: 920px;
@@ -184,7 +263,7 @@
       font-size: 2.4rem;
       font-weight: 800;
       text-align: center;
-      margin-bottom: 44px;
+      margin-bottom: 40px;
     }
 
     .rank-list {
@@ -250,9 +329,9 @@
       flex-shrink: 0;
     }
 
-    /* ═══════════════════ SLIDES 3 & 5 — COUNTDOWN ═══════════════════ */
-    #slide-2,
-    #slide-4 { text-align: center; }
+    /* ═══════════════════ SLIDES 4 & 6 — COUNTDOWN ═══════════════════ */
+    #slide-3,
+    #slide-5 { text-align: center; }
 
     .cd-number {
       font-size: 14rem;
@@ -390,7 +469,7 @@
 <div class="overlay" id="error">
   <div class="err-icon">⚠️</div>
   <div class="err-title">Erro ao carregar dados</div>
-  <div class="err-msg" id="err-msg">Não foi possível ligar ao servidor local.</div>
+  <div class="err-msg" id="err-msg">Não foi possível ligar ao servidor.</div>
   <button class="btn-retry" onclick="loadData()">Tentar novamente</button>
 </div>
 
@@ -416,8 +495,17 @@
     </div>
   </div>
 
-  <!-- Slide 2 — Ranking Angariações -->
+  <!-- Slide 2 — Últimas Angariações -->
   <div class="slide" id="slide-1">
+    <div class="ranking-wrap">
+      <div class="slide-eyebrow">Braga — Recentes</div>
+      <div class="slide-heading">🏠 Últimas Angariações</div>
+      <div class="ult-list" id="ult-ang"></div>
+    </div>
+  </div>
+
+  <!-- Slide 3 — Ranking Angariações -->
+  <div class="slide" id="slide-2">
     <div class="ranking-wrap">
       <div class="slide-eyebrow">Ranking do Mês</div>
       <div class="slide-heading">Angariações</div>
@@ -425,8 +513,8 @@
     </div>
   </div>
 
-  <!-- Slide 3 — Countdown Angariações -->
-  <div class="slide" id="slide-2">
+  <!-- Slide 4 — Countdown Angariações -->
+  <div class="slide" id="slide-3">
     <div class="slide-eyebrow">Objetivo</div>
     <div class="slide-heading">Angariações</div>
     <div class="cd-number gold" id="cd-ang-num">—</div>
@@ -441,8 +529,8 @@
     <div class="cd-success" id="cd-ang-ok"></div>
   </div>
 
-  <!-- Slide 4 — Ranking Contratos -->
-  <div class="slide" id="slide-3">
+  <!-- Slide 5 — Ranking Contratos -->
+  <div class="slide" id="slide-4">
     <div class="ranking-wrap">
       <div class="slide-eyebrow">Ranking do Mês</div>
       <div class="slide-heading">Contratos</div>
@@ -450,8 +538,8 @@
     </div>
   </div>
 
-  <!-- Slide 5 — Countdown Contratos -->
-  <div class="slide" id="slide-4">
+  <!-- Slide 6 — Countdown Contratos -->
+  <div class="slide" id="slide-5">
     <div class="slide-eyebrow">Objetivo</div>
     <div class="slide-heading">Contratos</div>
     <div class="cd-number gold" id="cd-cont-num">—</div>
@@ -478,6 +566,7 @@
   <div class="dot"></div>
   <div class="dot"></div>
   <div class="dot"></div>
+  <div class="dot"></div>
 </div>
 
 <script>
@@ -485,11 +574,11 @@
    CONFIG
 ════════════════════════════════════════════ */
 const API_URL    = '/.netlify/functions/dados';
-const SLIDE_MS   = 8000;
+const SLIDE_MS   = 5000;
 const REFRESH_MS = 5 * 60 * 1000;
 const GOAL_ANG   = 34;
 const GOAL_CONT  = 32;
-const N_SLIDES   = 5;
+const N_SLIDES   = 6;
 const MEDALS     = ['🥇', '🥈', '🥉'];
 
 /* ════════════════════════════════════════════
@@ -536,6 +625,41 @@ function animateBar() {
 document.addEventListener('click', () => goTo((curSlide + 1) % N_SLIDES));
 
 /* ════════════════════════════════════════════
+   RENDER — ÚLTIMAS ANGARIAÇÕES
+════════════════════════════════════════════ */
+function renderUltimas(items) {
+  const el = document.getElementById('ult-ang');
+  el.innerHTML = '';
+
+  if (!items || !items.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:48px;font-size:1.1rem">Sem dados disponíveis</div>';
+    return;
+  }
+
+  items.forEach(item => {
+    const row = document.createElement('div');
+    row.className = 'ult-row';
+    const valorFmt = item.valor > 0
+      ? '\u20AC\u00A0' + Math.round(item.valor).toLocaleString('pt-PT')
+      : '—';
+    const badgeClass = item.tipo === 'Venda' ? 'venda' : 'arrend';
+    row.innerHTML = `
+      <div class="ult-ref">${esc(item.ref)}</div>
+      <div class="ult-info">
+        <div class="ult-consultor">${esc(item.consultor)}</div>
+        <div class="ult-loc">${esc(item.localizacao)}</div>
+      </div>
+      <div class="ult-right">
+        <div class="ult-valor">${valorFmt}</div>
+        <div><span class="ult-badge ${badgeClass}">${esc(item.tipo)}</span></div>
+        <div class="ult-data">${esc(item.data)}</div>
+      </div>
+    `;
+    el.appendChild(row);
+  });
+}
+
+/* ════════════════════════════════════════════
    RENDER — RANKING
 ════════════════════════════════════════════ */
 function renderRanking(listId, consultores, field) {
@@ -568,7 +692,6 @@ function renderRanking(listId, consultores, field) {
     el.appendChild(row);
   });
 
-  // Animar barras após paint
   requestAnimationFrame(() => requestAnimationFrame(() => {
     el.querySelectorAll('.rank-bar-fill').forEach(b => {
       b.style.width = b.dataset.pct + '%';
@@ -608,7 +731,7 @@ function renderCountdown(prefix, current, goal) {
     okEl.textContent  = '';
   }
 
-  barEl.style.width  = '0%';
+  barEl.style.width = '0%';
   requestAnimationFrame(() => requestAnimationFrame(() => {
     barEl.style.width = pct + '%';
   }));
@@ -634,15 +757,12 @@ function esc(s) {
 let firstLoad = true;
 
 async function loadData() {
-  // Só mostrar o spinner no primeiro carregamento
   if (firstLoad) {
     document.getElementById('loading').classList.add('show');
     document.getElementById('error').classList.remove('show');
   }
 
   try {
-    // cache:'no-cache' envia Cache-Control:no-cache ao servidor/CDN,
-    // forçando sempre uma resposta fresca (não serve cacheado)
     const res = await fetch(API_URL, { cache: 'no-cache' });
 
     if (!res.ok) {
@@ -652,20 +772,22 @@ async function loadData() {
 
     const d = await res.json();
 
-    // Slide 1
+    // Slide 1 — Abertura
     document.getElementById('s1-month').textContent = `${d.mes} ${d.ano}`;
     document.getElementById('s1-ang').textContent   = d.totalAng;
     document.getElementById('s1-cont').textContent  = d.totalCont;
 
-    // Slides 2 & 4
+    // Slide 2 — Últimas Angariações
+    renderUltimas(d.ultimasAngariações || []);
+
+    // Slides 3 & 5 — Rankings
     renderRanking('rank-ang',  d.consultores, 'ang');
     renderRanking('rank-cont', d.consultores, 'cont');
 
-    // Slides 3 & 5
+    // Slides 4 & 6 — Countdowns
     renderCountdown('cd-ang',  d.totalAng,  GOAL_ANG);
     renderCountdown('cd-cont', d.totalCont, GOAL_CONT);
 
-    // Timestamp gerado no cliente (não depende do servidor nem da CDN)
     const now = new Date();
     document.getElementById('last-update').textContent =
       `Atualizado às ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
@@ -686,7 +808,6 @@ async function loadData() {
       document.getElementById('err-msg').textContent = `${err.message}`;
       document.getElementById('error').classList.add('show');
     }
-    // Em background: não interromper o slideshow, tentar novamente no próximo ciclo
   }
 }
 
