@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TV Nopi Braga</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --gold:      #B8A06A;
+      --gold-l:    #D4BC8A;
+      --green:     #4CAF50;
+      --red:       #e74c3c;
+      --bg:        #111111;
+      --muted:     rgba(255,255,255,0.4);
+    }
+
+    body {
+      background: var(--bg);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      cursor: none;
+    }
+
+    /* ═══════════════════ SLIDESHOW ═══════════════════ */
+    .slideshow {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 64px 100px 96px;
+      opacity: 0;
+      transition: opacity 0.8s ease;
+    }
+    .slide.active { opacity: 1; }
+
+    /* ═══════════════════ CHROME ═══════════════════ */
+    #progress-bar {
+      position: fixed;
+      bottom: 0; left: 0;
+      height: 4px;
+      background: var(--gold);
+      width: 0%;
+      z-index: 100;
+    }
+
+    #clock {
+      position: fixed;
+      top: 28px; right: 40px;
+      font-size: 1.5rem;
+      font-weight: 300;
+      color: var(--muted);
+      z-index: 100;
+      letter-spacing: 0.05em;
+    }
+
+    #last-update {
+      position: fixed;
+      bottom: 16px; right: 28px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      z-index: 100;
+    }
+
+    #slide-dots {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 8px;
+      z-index: 100;
+    }
+
+    .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: background 0.3s;
+    }
+    .dot.active { background: var(--gold); }
+
+    /* ═══════════════════ SLIDE 1 — ABERTURA ═══════════════════ */
+    #slide-0 { text-align: center; }
+
+    .s1-tag {
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.35em;
+      color: var(--gold);
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .s1-name {
+      font-size: 6rem;
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(135deg, var(--gold-l), var(--gold));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+
+    .s1-sub {
+      font-size: 1.8rem;
+      font-weight: 300;
+      color: rgba(255,255,255,0.6);
+      margin-bottom: 32px;
+    }
+
+    .s1-divider {
+      width: 64px; height: 2px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 0 auto 28px;
+    }
+
+    .s1-month {
+      font-size: 1.4rem;
+      font-weight: 500;
+      color: var(--gold);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 44px;
+    }
+
+    .s1-stats {
+      display: flex;
+      gap: 40px;
+    }
+
+    .stat-box {
+      background: rgba(184,160,106,0.08);
+      border: 1px solid rgba(184,160,106,0.25);
+      border-radius: 16px;
+      padding: 30px 56px;
+      text-align: center;
+    }
+
+    .stat-val {
+      font-size: 4.5rem;
+      font-weight: 900;
+      color: var(--gold-l);
+      line-height: 1;
+    }
+
+    .stat-lbl {
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--muted);
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      margin-top: 10px;
+    }
+
+    /* ═══════════════════ SLIDES 2 & 4 — RANKING ═══════════════════ */
+    .ranking-wrap {
+      width: 100%;
+      max-width: 920px;
+    }
+
+    .slide-eyebrow {
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.32em;
+      color: var(--gold);
+      text-transform: uppercase;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+
+    .slide-heading {
+      font-size: 2.4rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 44px;
+    }
+
+    .rank-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .rank-row {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 16px 22px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+
+    .rank-row.top1 {
+      background: rgba(184,160,106,0.1);
+      border-color: rgba(184,160,106,0.35);
+    }
+
+    .rank-pos {
+      font-size: 1.6rem;
+      min-width: 48px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .rank-name {
+      font-size: 1.15rem;
+      font-weight: 600;
+      flex: 1;
+      min-width: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .rank-bar-wrap {
+      flex: 2;
+      height: 8px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .rank-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), var(--gold-l));
+      border-radius: 4px;
+      width: 0%;
+      transition: width 1.2s ease;
+    }
+
+    .rank-val {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--gold-l);
+      min-width: 44px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* ═══════════════════ SLIDES 3 & 5 — COUNTDOWN ═══════════════════ */
+    #slide-2,
+    #slide-4 { text-align: center; }
+
+    .cd-number {
+      font-size: 14rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .cd-number.gold  { color: var(--gold-l); }
+    .cd-number.green { color: var(--green); }
+    .cd-number.red   {
+      color: var(--red);
+      animation: blink 1s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.2; }
+    }
+
+    .cd-sublabel {
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: var(--muted);
+      margin-top: 14px;
+    }
+
+    .cd-prog-wrap {
+      width: 620px;
+      margin: 40px auto 12px;
+    }
+
+    .cd-prog-track {
+      height: 12px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .cd-prog-fill {
+      height: 100%;
+      border-radius: 6px;
+      width: 0%;
+      transition: width 1.2s ease;
+    }
+
+    .cd-prog-fill.gold-fill  { background: linear-gradient(90deg, var(--gold), var(--gold-l)); }
+    .cd-prog-fill.green-fill { background: var(--green); }
+
+    .cd-prog-pct {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    .cd-meta {
+      font-size: 1.1rem;
+      font-weight: 500;
+      color: rgba(255,255,255,0.55);
+      margin-top: 20px;
+    }
+
+    .cd-success {
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--green);
+      margin-top: 14px;
+      min-height: 2rem;
+    }
+
+    /* ═══════════════════ OVERLAYS ═══════════════════ */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      z-index: 200;
+      text-align: center;
+      gap: 0;
+    }
+    .overlay.show { display: flex; }
+
+    /* Loading */
+    .spinner {
+      width: 52px; height: 52px;
+      border: 3px solid rgba(184,160,106,0.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-lbl {
+      margin-top: 24px;
+      font-size: 1.1rem;
+      color: var(--muted);
+    }
+
+    /* Error */
+    .err-icon  { font-size: 3.5rem; margin-bottom: 20px; }
+    .err-title { font-size: 1.8rem; font-weight: 700; color: var(--red); margin-bottom: 12px; }
+    .err-msg   {
+      font-size: 1rem;
+      color: var(--muted);
+      max-width: 540px;
+      margin-bottom: 32px;
+      line-height: 1.65;
+    }
+
+    .btn-retry {
+      background: var(--gold);
+      color: #111;
+      border: none;
+      padding: 14px 44px;
+      font-size: 1rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: background 0.2s;
+    }
+    .btn-retry:hover { background: var(--gold-l); }
+  </style>
+</head>
+<body>
+
+<!-- ─── Loading ─── -->
+<div class="overlay show" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-lbl">A carregar dados…</div>
+</div>
+
+<!-- ─── Error ─── -->
+<div class="overlay" id="error">
+  <div class="err-icon">⚠️</div>
+  <div class="err-title">Erro ao carregar dados</div>
+  <div class="err-msg" id="err-msg">Não foi possível carregar o ficheiro Excel.</div>
+  <button class="btn-retry" onclick="loadData()">Tentar novamente</button>
+</div>
+
+<!-- ─── Slideshow ─── -->
+<div class="slideshow" id="slideshow" style="display:none">
+
+  <!-- Slide 1 — Abertura -->
+  <div class="slide" id="slide-0">
+    <div class="s1-tag">CENTURY 21</div>
+    <div class="s1-name">Nopi</div>
+    <div class="s1-sub">Agência de Braga</div>
+    <div class="s1-divider"></div>
+    <div class="s1-month" id="s1-month">—</div>
+    <div class="s1-stats">
+      <div class="stat-box">
+        <div class="stat-val" id="s1-ang">—</div>
+        <div class="stat-lbl">Angariações</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="s1-cont">—</div>
+        <div class="stat-lbl">Contratos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 2 — Ranking Angariações -->
+  <div class="slide" id="slide-1">
+    <div class="ranking-wrap">
+      <div class="slide-eyebrow">Ranking do Mês</div>
+      <div class="slide-heading">Angariações</div>
+      <div class="rank-list" id="rank-ang"></div>
+    </div>
+  </div>
+
+  <!-- Slide 3 — Countdown Angariações -->
+  <div class="slide" id="slide-2">
+    <div class="slide-eyebrow">Objetivo</div>
+    <div class="slide-heading">Angariações</div>
+    <div class="cd-number gold" id="cd-ang-num">—</div>
+    <div class="cd-sublabel" id="cd-ang-sub"></div>
+    <div class="cd-prog-wrap">
+      <div class="cd-prog-track">
+        <div class="cd-prog-fill gold-fill" id="cd-ang-bar"></div>
+      </div>
+      <div class="cd-prog-pct" id="cd-ang-pct"></div>
+    </div>
+    <div class="cd-meta" id="cd-ang-meta"></div>
+    <div class="cd-success" id="cd-ang-ok"></div>
+  </div>
+
+  <!-- Slide 4 — Ranking Contratos -->
+  <div class="slide" id="slide-3">
+    <div class="ranking-wrap">
+      <div class="slide-eyebrow">Ranking do Mês</div>
+      <div class="slide-heading">Contratos</div>
+      <div class="rank-list" id="rank-cont"></div>
+    </div>
+  </div>
+
+  <!-- Slide 5 — Countdown Contratos -->
+  <div class="slide" id="slide-4">
+    <div class="slide-eyebrow">Objetivo</div>
+    <div class="slide-heading">Contratos</div>
+    <div class="cd-number gold" id="cd-cont-num">—</div>
+    <div class="cd-sublabel" id="cd-cont-sub"></div>
+    <div class="cd-prog-wrap">
+      <div class="cd-prog-track">
+        <div class="cd-prog-fill gold-fill" id="cd-cont-bar"></div>
+      </div>
+      <div class="cd-prog-pct" id="cd-cont-pct"></div>
+    </div>
+    <div class="cd-meta" id="cd-cont-meta"></div>
+    <div class="cd-success" id="cd-cont-ok"></div>
+  </div>
+
+</div>
+
+<!-- Chrome -->
+<div id="progress-bar"></div>
+<div id="clock"></div>
+<div id="last-update"></div>
+<div id="slide-dots">
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   CONFIG
+════════════════════════════════════════════ */
+const EXCEL_URL  = 'https://www.dropbox.com/scl/fi/y4i9m6v4q8snd2m3qljoh/Motherboard-2026.xlsx?rlkey=4px2hpxbg8p6fot2l65bkdamg&st=4h2vu72e&dl=1';
+const PROXY      = 'https://api.allorigins.win/raw?url=';
+const SLIDE_MS   = 8000;
+const REFRESH_MS = 5 * 60 * 1000;
+const GOAL_ANG   = 34;
+const GOAL_CONT  = 32;
+const N_SLIDES   = 5;
+
+// Column offset for the start of each month's block (0-based)
+const MONTH_OFFSETS = [0, 17, 30, 42, 54, 66, 78, 90, 102, 114, 126, 138];
+const MONTH_NAMES   = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                       'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const MEDALS = ['🥇','🥈','🥉'];
+
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+let curSlide   = 0;
+let slideTimer = null;
+
+/* ════════════════════════════════════════════
+   CLOCK
+════════════════════════════════════════════ */
+function pad2(n) { return String(n).padStart(2, '0'); }
+
+function tick() {
+  const t = new Date();
+  document.getElementById('clock').textContent =
+    `${pad2(t.getHours())}:${pad2(t.getMinutes())}:${pad2(t.getSeconds())}`;
+}
+setInterval(tick, 1000);
+tick();
+
+/* ════════════════════════════════════════════
+   SLIDESHOW
+════════════════════════════════════════════ */
+function goTo(idx) {
+  document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
+  document.querySelectorAll('.dot').forEach((d, i)  => d.classList.toggle('active', i === idx));
+  curSlide = idx;
+  animateProgressBar();
+  clearTimeout(slideTimer);
+  slideTimer = setTimeout(() => goTo((curSlide + 1) % N_SLIDES), SLIDE_MS);
+}
+
+function animateProgressBar() {
+  const bar = document.getElementById('progress-bar');
+  bar.style.transition = 'none';
+  bar.style.width = '0%';
+  // Double rAF forces a repaint so the transition fires correctly
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    bar.style.transition = `width ${SLIDE_MS}ms linear`;
+    bar.style.width = '100%';
+  }));
+}
+
+document.addEventListener('click', () => goTo((curSlide + 1) % N_SLIDES));
+
+/* ════════════════════════════════════════════
+   RENDERING — RANKING
+════════════════════════════════════════════ */
+function renderRanking(listId, consultants, field) {
+  const el = document.getElementById(listId);
+  el.innerHTML = '';
+
+  const sorted = [...consultants]
+    .filter(c => c[field] > 0)
+    .sort((a, b) => b[field] - a[field])
+    .slice(0, 7);
+
+  if (!sorted.length) {
+    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:48px;font-size:1.1rem">Sem dados disponíveis</div>';
+    return;
+  }
+
+  const max = sorted[0][field];
+
+  sorted.forEach((c, i) => {
+    const pct  = max > 0 ? Math.round(c[field] / max * 100) : 0;
+    const pos  = MEDALS[i] !== undefined ? MEDALS[i] : String(i + 1);
+    const row  = document.createElement('div');
+    row.className = 'rank-row' + (i === 0 ? ' top1' : '');
+    row.innerHTML = `
+      <div class="rank-pos">${pos}</div>
+      <div class="rank-name">${escHtml(c.name)}</div>
+      <div class="rank-bar-wrap"><div class="rank-bar-fill" data-pct="${pct}"></div></div>
+      <div class="rank-val">${c[field]}</div>
+    `;
+    el.appendChild(row);
+  });
+
+  // Animate bars after paint
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    el.querySelectorAll('.rank-bar-fill').forEach(b => {
+      b.style.width = b.dataset.pct + '%';
+    });
+  }));
+}
+
+/* ════════════════════════════════════════════
+   RENDERING — COUNTDOWN
+════════════════════════════════════════════ */
+function renderCountdown(prefix, current, goal) {
+  const remaining = goal - current;
+  const pct       = Math.min(100, Math.round(current / goal * 100));
+  const achieved  = current >= goal;
+  const urgent    = !achieved && remaining <= 5;
+
+  const numEl  = document.getElementById(`${prefix}-num`);
+  const subEl  = document.getElementById(`${prefix}-sub`);
+  const barEl  = document.getElementById(`${prefix}-bar`);
+  const pctEl  = document.getElementById(`${prefix}-pct`);
+  const metaEl = document.getElementById(`${prefix}-meta`);
+  const okEl   = document.getElementById(`${prefix}-ok`);
+
+  if (achieved) {
+    numEl.textContent  = '✓';
+    numEl.className    = 'cd-number green';
+    subEl.textContent  = 'Meta atingida!';
+    barEl.className    = 'cd-prog-fill green-fill';
+    okEl.textContent   = current > goal
+      ? `✅ Superámos a meta em ${current - goal}!`
+      : '✅ Meta atingida com exatidão!';
+  } else {
+    numEl.textContent  = remaining;
+    numEl.className    = 'cd-number ' + (urgent ? 'red' : 'gold');
+    subEl.textContent  = remaining === 1 ? 'falta para a meta' : 'faltam para a meta';
+    barEl.className    = 'cd-prog-fill gold-fill';
+    okEl.textContent   = '';
+  }
+
+  // Animate bar
+  barEl.style.width = '0%';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    barEl.style.width = pct + '%';
+  }));
+
+  pctEl.textContent  = `${pct}% concluído`;
+  metaEl.textContent = `${current} feitas · Meta: ${goal}`;
+}
+
+/* ════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════ */
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function numVal(v) {
+  const n = Number(v);
+  return isFinite(n) ? n : 0;
+}
+
+/* ════════════════════════════════════════════
+   DATA LOADING
+════════════════════════════════════════════ */
+async function loadData() {
+  document.getElementById('loading').classList.add('show');
+  document.getElementById('error').classList.remove('show');
+
+  try {
+    const fetchUrl = PROXY + encodeURIComponent(EXCEL_URL);
+    const res = await fetch(fetchUrl);
+    if (!res.ok) throw new Error(`Servidor respondeu com HTTP ${res.status}.`);
+
+    const buf = await res.arrayBuffer();
+    const wb  = XLSX.read(buf, { type: 'array' });
+
+    const ws = wb.Sheets['RC'];
+    if (!ws) throw new Error('Folha "RC" não encontrada no ficheiro Excel.');
+
+    // Parse all rows as arrays; missing cells become ''
+    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+
+    const now = new Date();
+    const mi  = now.getMonth();           // 0 = Janeiro
+    const off = MONTH_OFFSETS[mi];
+
+    // ── BRG totals (row index 66) ──────────────────────────────────
+    const brgRow    = rows[66] || [];
+    const totalAng  = numVal(brgRow[off + 2]);
+    const totalCont = numVal(brgRow[off + 4]);
+
+    // ── Consultants (rows 67+) ─────────────────────────────────────
+    const consultants = [];
+    for (let i = 67; i < rows.length; i++) {
+      const r    = rows[i];
+      const name = String(r[off] || '').trim();
+      if (!name) continue;                             // skip blank rows
+      if (name === 'Total Geral' || name === 'CESSADOS') break;
+      const ang  = numVal(r[off + 2]);
+      const cont = numVal(r[off + 4]);
+      if (ang > 0 || cont > 0) consultants.push({ name, ang, cont });
+    }
+
+    // ── Populate slides ────────────────────────────────────────────
+    const monthLabel = `${MONTH_NAMES[mi]} ${now.getFullYear()}`;
+    document.getElementById('s1-month').textContent = monthLabel;
+    document.getElementById('s1-ang').textContent   = totalAng;
+    document.getElementById('s1-cont').textContent  = totalCont;
+
+    renderRanking('rank-ang',  consultants, 'ang');
+    renderRanking('rank-cont', consultants, 'cont');
+    renderCountdown('cd-ang',  totalAng,  GOAL_ANG);
+    renderCountdown('cd-cont', totalCont, GOAL_CONT);
+
+    document.getElementById('last-update').textContent =
+      `Atualizado às ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+
+    // ── Show slideshow ─────────────────────────────────────────────
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('slideshow').style.display = 'block';
+
+    if (!slideTimer) goTo(0);   // start only on first successful load
+
+  } catch (err) {
+    console.error('[TV-NOPI]', err);
+    clearTimeout(slideTimer);
+    slideTimer = null;
+    document.getElementById('loading').classList.remove('show');
+    document.getElementById('err-msg').textContent =
+      `${err.message} Verifique a ligação à internet e tente novamente.`;
+    document.getElementById('error').classList.add('show');
+  }
+}
+
+// Auto-refresh every 5 minutes
+setInterval(loadData, REFRESH_MS);
+
+// Initial load
+loadData();
+</script>
+</body>
+</html>
