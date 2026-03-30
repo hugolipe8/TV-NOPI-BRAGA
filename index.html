@@ -5,17 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TV Nopi Braga</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --gold:      #B8A06A;
-      --gold-l:    #D4BC8A;
-      --green:     #4CAF50;
-      --red:       #e74c3c;
-      --bg:        #111111;
-      --muted:     rgba(255,255,255,0.4);
+      --gold:    #B8A06A;
+      --gold-l:  #D4BC8A;
+      --green:   #4CAF50;
+      --red:     #e74c3c;
+      --bg:      #111111;
+      --muted:   rgba(255,255,255,0.4);
     }
 
     body {
@@ -139,10 +138,7 @@
       margin-bottom: 44px;
     }
 
-    .s1-stats {
-      display: flex;
-      gap: 40px;
-    }
+    .s1-stats { display: flex; gap: 40px; }
 
     .stat-box {
       background: rgba(184,160,106,0.08);
@@ -338,11 +334,9 @@
       background: var(--bg);
       z-index: 200;
       text-align: center;
-      gap: 0;
     }
     .overlay.show { display: flex; }
 
-    /* Loading */
     .spinner {
       width: 52px; height: 52px;
       border: 3px solid rgba(184,160,106,0.2);
@@ -359,7 +353,6 @@
       color: var(--muted);
     }
 
-    /* Error */
     .err-icon  { font-size: 3.5rem; margin-bottom: 20px; }
     .err-title { font-size: 1.8rem; font-weight: 700; color: var(--red); margin-bottom: 12px; }
     .err-msg   {
@@ -397,7 +390,7 @@
 <div class="overlay" id="error">
   <div class="err-icon">⚠️</div>
   <div class="err-title">Erro ao carregar dados</div>
-  <div class="err-msg" id="err-msg">Não foi possível carregar o ficheiro Excel.</div>
+  <div class="err-msg" id="err-msg">Não foi possível ligar ao servidor local.</div>
   <button class="btn-retry" onclick="loadData()">Tentar novamente</button>
 </div>
 
@@ -475,7 +468,7 @@
 
 </div>
 
-<!-- Chrome -->
+<!-- Chrome UI -->
 <div id="progress-bar"></div>
 <div id="clock"></div>
 <div id="last-update"></div>
@@ -491,19 +484,13 @@
 /* ════════════════════════════════════════════
    CONFIG
 ════════════════════════════════════════════ */
-const EXCEL_URL  = 'https://www.dropbox.com/scl/fi/y4i9m6v4q8snd2m3qljoh/Motherboard-2026.xlsx?rlkey=4px2hpxbg8p6fot2l65bkdamg&st=4h2vu72e&dl=1';
-const PROXY      = 'https://api.allorigins.win/raw?url=';
+const API_URL    = 'http://localhost:8765/dados';
 const SLIDE_MS   = 8000;
 const REFRESH_MS = 5 * 60 * 1000;
 const GOAL_ANG   = 34;
 const GOAL_CONT  = 32;
 const N_SLIDES   = 5;
-
-// Column offset for the start of each month's block (0-based)
-const MONTH_OFFSETS = [0, 17, 30, 42, 54, 66, 78, 90, 102, 114, 126, 138];
-const MONTH_NAMES   = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
-                       'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-const MEDALS = ['🥇','🥈','🥉'];
+const MEDALS     = ['🥇', '🥈', '🥉'];
 
 /* ════════════════════════════════════════════
    STATE
@@ -531,16 +518,15 @@ function goTo(idx) {
   document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
   document.querySelectorAll('.dot').forEach((d, i)  => d.classList.toggle('active', i === idx));
   curSlide = idx;
-  animateProgressBar();
+  animateBar();
   clearTimeout(slideTimer);
   slideTimer = setTimeout(() => goTo((curSlide + 1) % N_SLIDES), SLIDE_MS);
 }
 
-function animateProgressBar() {
+function animateBar() {
   const bar = document.getElementById('progress-bar');
   bar.style.transition = 'none';
   bar.style.width = '0%';
-  // Double rAF forces a repaint so the transition fires correctly
   requestAnimationFrame(() => requestAnimationFrame(() => {
     bar.style.transition = `width ${SLIDE_MS}ms linear`;
     bar.style.width = '100%';
@@ -550,13 +536,13 @@ function animateProgressBar() {
 document.addEventListener('click', () => goTo((curSlide + 1) % N_SLIDES));
 
 /* ════════════════════════════════════════════
-   RENDERING — RANKING
+   RENDER — RANKING
 ════════════════════════════════════════════ */
-function renderRanking(listId, consultants, field) {
+function renderRanking(listId, consultores, field) {
   const el = document.getElementById(listId);
   el.innerHTML = '';
 
-  const sorted = [...consultants]
+  const sorted = [...consultores]
     .filter(c => c[field] > 0)
     .sort((a, b) => b[field] - a[field])
     .slice(0, 7);
@@ -569,20 +555,20 @@ function renderRanking(listId, consultants, field) {
   const max = sorted[0][field];
 
   sorted.forEach((c, i) => {
-    const pct  = max > 0 ? Math.round(c[field] / max * 100) : 0;
-    const pos  = MEDALS[i] !== undefined ? MEDALS[i] : String(i + 1);
-    const row  = document.createElement('div');
+    const pct = max > 0 ? Math.round(c[field] / max * 100) : 0;
+    const pos = MEDALS[i] !== undefined ? MEDALS[i] : String(i + 1);
+    const row = document.createElement('div');
     row.className = 'rank-row' + (i === 0 ? ' top1' : '');
     row.innerHTML = `
       <div class="rank-pos">${pos}</div>
-      <div class="rank-name">${escHtml(c.name)}</div>
+      <div class="rank-name">${esc(c.nome)}</div>
       <div class="rank-bar-wrap"><div class="rank-bar-fill" data-pct="${pct}"></div></div>
       <div class="rank-val">${c[field]}</div>
     `;
     el.appendChild(row);
   });
 
-  // Animate bars after paint
+  // Animar barras após paint
   requestAnimationFrame(() => requestAnimationFrame(() => {
     el.querySelectorAll('.rank-bar-fill').forEach(b => {
       b.style.width = b.dataset.pct + '%';
@@ -591,7 +577,7 @@ function renderRanking(listId, consultants, field) {
 }
 
 /* ════════════════════════════════════════════
-   RENDERING — COUNTDOWN
+   RENDER — COUNTDOWN
 ════════════════════════════════════════════ */
 function renderCountdown(prefix, current, goal) {
   const remaining = goal - current;
@@ -607,23 +593,22 @@ function renderCountdown(prefix, current, goal) {
   const okEl   = document.getElementById(`${prefix}-ok`);
 
   if (achieved) {
-    numEl.textContent  = '✓';
-    numEl.className    = 'cd-number green';
-    subEl.textContent  = 'Meta atingida!';
-    barEl.className    = 'cd-prog-fill green-fill';
-    okEl.textContent   = current > goal
+    numEl.textContent = '✓';
+    numEl.className   = 'cd-number green';
+    subEl.textContent = 'Meta atingida!';
+    barEl.className   = 'cd-prog-fill green-fill';
+    okEl.textContent  = current > goal
       ? `✅ Superámos a meta em ${current - goal}!`
       : '✅ Meta atingida com exatidão!';
   } else {
-    numEl.textContent  = remaining;
-    numEl.className    = 'cd-number ' + (urgent ? 'red' : 'gold');
-    subEl.textContent  = remaining === 1 ? 'falta para a meta' : 'faltam para a meta';
-    barEl.className    = 'cd-prog-fill gold-fill';
-    okEl.textContent   = '';
+    numEl.textContent = remaining;
+    numEl.className   = 'cd-number ' + (urgent ? 'red' : 'gold');
+    subEl.textContent = remaining === 1 ? 'falta para a meta' : 'faltam para a meta';
+    barEl.className   = 'cd-prog-fill gold-fill';
+    okEl.textContent  = '';
   }
 
-  // Animate bar
-  barEl.style.width = '0%';
+  barEl.style.width  = '0%';
   requestAnimationFrame(() => requestAnimationFrame(() => {
     barEl.style.width = pct + '%';
   }));
@@ -635,80 +620,50 @@ function renderCountdown(prefix, current, goal) {
 /* ════════════════════════════════════════════
    HELPERS
 ════════════════════════════════════════════ */
-function escHtml(str) {
-  return String(str)
+function esc(s) {
+  return String(s)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
 }
 
-function numVal(v) {
-  const n = Number(v);
-  return isFinite(n) ? n : 0;
-}
-
 /* ════════════════════════════════════════════
-   DATA LOADING
+   DATA — LOAD FROM LOCAL SERVER
 ════════════════════════════════════════════ */
 async function loadData() {
   document.getElementById('loading').classList.add('show');
   document.getElementById('error').classList.remove('show');
 
   try {
-    const fetchUrl = PROXY + encodeURIComponent(EXCEL_URL);
-    const res = await fetch(fetchUrl);
-    if (!res.ok) throw new Error(`Servidor respondeu com HTTP ${res.status}.`);
+    const res = await fetch(API_URL, { cache: 'no-store' });
 
-    const buf = await res.arrayBuffer();
-    const wb  = XLSX.read(buf, { type: 'array' });
-
-    const ws = wb.Sheets['RC'];
-    if (!ws) throw new Error('Folha "RC" não encontrada no ficheiro Excel.');
-
-    // Parse all rows as arrays; missing cells become ''
-    const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
-
-    const now = new Date();
-    const mi  = now.getMonth();           // 0 = Janeiro
-    const off = MONTH_OFFSETS[mi];
-
-    // ── BRG totals (row index 66) ──────────────────────────────────
-    const brgRow    = rows[66] || [];
-    const totalAng  = numVal(brgRow[off + 2]);
-    const totalCont = numVal(brgRow[off + 4]);
-
-    // ── Consultants (rows 67+) ─────────────────────────────────────
-    const consultants = [];
-    for (let i = 67; i < rows.length; i++) {
-      const r    = rows[i];
-      const name = String(r[off] || '').trim();
-      if (!name) continue;                             // skip blank rows
-      if (name === 'Total Geral' || name === 'CESSADOS') break;
-      const ang  = numVal(r[off + 2]);
-      const cont = numVal(r[off + 4]);
-      if (ang > 0 || cont > 0) consultants.push({ name, ang, cont });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.erro || `Servidor respondeu com HTTP ${res.status}`);
     }
 
-    // ── Populate slides ────────────────────────────────────────────
-    const monthLabel = `${MONTH_NAMES[mi]} ${now.getFullYear()}`;
-    document.getElementById('s1-month').textContent = monthLabel;
-    document.getElementById('s1-ang').textContent   = totalAng;
-    document.getElementById('s1-cont').textContent  = totalCont;
+    const d = await res.json();
 
-    renderRanking('rank-ang',  consultants, 'ang');
-    renderRanking('rank-cont', consultants, 'cont');
-    renderCountdown('cd-ang',  totalAng,  GOAL_ANG);
-    renderCountdown('cd-cont', totalCont, GOAL_CONT);
+    // Slide 1
+    document.getElementById('s1-month').textContent = `${d.mes} ${d.ano}`;
+    document.getElementById('s1-ang').textContent   = d.totalAng;
+    document.getElementById('s1-cont').textContent  = d.totalCont;
 
-    document.getElementById('last-update').textContent =
-      `Atualizado às ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
+    // Slides 2 & 4
+    renderRanking('rank-ang',  d.consultores, 'ang');
+    renderRanking('rank-cont', d.consultores, 'cont');
 
-    // ── Show slideshow ─────────────────────────────────────────────
+    // Slides 3 & 5
+    renderCountdown('cd-ang',  d.totalAng,  GOAL_ANG);
+    renderCountdown('cd-cont', d.totalCont, GOAL_CONT);
+
+    document.getElementById('last-update').textContent = `Atualizado às ${d.atualizado}`;
+
     document.getElementById('loading').classList.remove('show');
     document.getElementById('slideshow').style.display = 'block';
 
-    if (!slideTimer) goTo(0);   // start only on first successful load
+    if (!slideTimer) goTo(0);
 
   } catch (err) {
     console.error('[TV-NOPI]', err);
@@ -716,15 +671,12 @@ async function loadData() {
     slideTimer = null;
     document.getElementById('loading').classList.remove('show');
     document.getElementById('err-msg').textContent =
-      `${err.message} Verifique a ligação à internet e tente novamente.`;
+      `${err.message} — Certifique-se que o servidor (server.py) está a correr.`;
     document.getElementById('error').classList.add('show');
   }
 }
 
-// Auto-refresh every 5 minutes
 setInterval(loadData, REFRESH_MS);
-
-// Initial load
 loadData();
 </script>
 </body>
