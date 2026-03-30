@@ -129,15 +129,21 @@ exports.handler = async (event) => {
     if (wsAng) {
       const aRows = XLSX.utils.sheet_to_json(wsAng, { header: 1, defval: "" });
 
-      const matches = aRows.filter(row => String(row[0] ?? "").trim().startsWith("C0256-"));
+      const matches = aRows.filter(row => String(row[1] ?? "").trim().startsWith("C0256-"));
+
+      matches.sort((a, b) => {
+        const na = parseInt(String(a[1] ?? "").replace(/\D/g, ""), 10) || 0;
+        const nb = parseInt(String(b[1] ?? "").replace(/\D/g, ""), 10) || 0;
+        return na - nb;
+      });
 
       for (const row of matches.slice(-5).reverse()) {
         ultimasAngariações.push({
-          ref:         String(row[0] ?? "").trim(),
-          localizacao: String(row[1] ?? "").trim(),
-          valor:       toNum(row[2]),
-          consultor:   String(row[3] ?? "").trim(),
-          data:        fmtDate(row[4]),
+          ref:         String(row[1] ?? "").trim(),
+          localizacao: String(row[2] ?? "").trim(),
+          valor:       toNum(row[3]),
+          consultor:   String(row[4] ?? "").trim(),
+          data:        fmtDate(row[5]),
           tipo:        "",
         });
       }
