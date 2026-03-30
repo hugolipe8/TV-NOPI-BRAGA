@@ -119,9 +119,30 @@ exports.handler = async (event) => {
       if (ang > 0 || cont > 0) consultores.push({ nome: name, ang, cont });
     }
 
+    // ── Folha MOTHER — últimas angariações BRG/ANG/VO ───────────────────────────
+    const wsMother = wb.Sheets["MOTHER"];
+    const motherRows = wsMother
+      ? XLSX.utils.sheet_to_json(wsMother, { header: 1, defval: "" })
+      : [];
+    const ultimasAngariações = motherRows
+      .filter(row =>
+        String(row[55] ?? "").trim() === "BRG" &&
+        String(row[57] ?? "").trim() === "ANG" &&
+        String(row[60] ?? "").trim() === "VO"
+      )
+      .slice(-5)
+      .reverse()
+      .map(row => ({
+        ref:        String(row[61] ?? "").trim(),
+        localidade: String(row[58] ?? "").trim(),
+        consultor:  String(row[62] ?? "").trim(),
+        valor:      toNum(row[67]),
+        data:       fmtDate(row[59]),
+      }));
+
     return json(
       200,
-      { mes: MONTH_NAMES[mi], ano: now.getFullYear(), totalAng, totalCont, consultores },
+      { mes: MONTH_NAMES[mi], ano: now.getFullYear(), totalAng, totalCont, consultores, ultimasAngariações },
       { "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0" }
     );
 
