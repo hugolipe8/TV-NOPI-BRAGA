@@ -149,7 +149,7 @@ exports.handler = async (event) => {
       }
 
       // Ordenar por data descendente e devolver top 5
-      entries.sort((a, b) => dateTs(b.dataRaw) - dateTs(a.dataRaw));
+      entries.sort((a, b) => String(b.ref).localeCompare(String(a.ref), undefined, { numeric: true, sensitivity: "base" }));
       for (const e of entries.slice(0, 5)) {
         ultimasAngariações.push({
           ref:        e.ref,
