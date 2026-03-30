@@ -119,43 +119,27 @@ exports.handler = async (event) => {
       if (ang > 0 || cont > 0) consultores.push({ nome: name, ang, cont });
     }
 
-    // ── Folha ANG — últimas angariações de Braga (coluna K, índice 10) ──────────
-    // Imediatamente antes de "Total Geral" estão blocos de 4 linhas por angariação.
-    // Lidos de baixo para cima: VALOR, CONSULTOR, LOCALIZAÇÃO, REF.
-    // Apresentados em ordem natural do ficheiro (mais antigo primeiro).
+    // ── Folha ANG — tabela a partir de A2 ────────────────────────────────────────
+    // Col A (0)=REF, B (1)=Localidade, C (2)=Valor, D (3)=Consultor, E (4)=Data
+    // Filtrar linhas onde col A começa por "C0256-", tomar as últimas 5
+    // e devolvê-las em ordem inversa (mais recente primeiro).
     const wsAng = wb.Sheets["ANG"];
     const ultimasAngariações = [];
 
     if (wsAng) {
       const aRows = XLSX.utils.sheet_to_json(wsAng, { header: 1, defval: "" });
-      const COL   = 10; // coluna K
 
-      // Encontrar "Total Geral" a partir do fim
-      let totalGeralIdx = -1;
-      for (let i = aRows.length - 1; i >= 0; i--) {
-        if (String(aRows[i][COL] ?? "").trim() === "Total Geral") {
-          totalGeralIdx = i;
-          break;
-        }
-      }
+      const matches = aRows.filter(row => String(row[0] ?? "").trim().startsWith("C0256-"));
 
-      if (totalGeralIdx >= 20) {
-        const block = aRows.slice(totalGeralIdx - 20, totalGeralIdx);
-        // block[19] = VALOR mais recente, block[0] = REF mais antiga
-
-        const entries = [];
-        // Ler de baixo para cima em grupos de 4: VALOR, CONSULTOR, LOCALIZAÇÃO, REF
-        for (let i = block.length - 1; i >= 3; i -= 4) {
-          const valor       = toNum(block[i    ][COL]);
-          const consultor   = String(block[i - 1][COL] ?? "").trim();
-          const localizacao = String(block[i - 2][COL] ?? "").trim();
-          const ref         = String(block[i - 3][COL] ?? "").trim();
-          if (ref) entries.push({ ref, localizacao, consultor, valor });
-        }
-        // entries está [mais recente → mais antiga]; inverter para ordem natural do ficheiro
-        for (const e of entries.reverse()) {
-          ultimasAngariações.push({ ref: e.ref, localizacao: e.localizacao, consultor: e.consultor, valor: e.valor, tipo: "", data: "" });
-        }
+      for (const row of matches.slice(-5).reverse()) {
+        ultimasAngariações.push({
+          ref:         String(row[0] ?? "").trim(),
+          localizacao: String(row[1] ?? "").trim(),
+          valor:       toNum(row[2]),
+          consultor:   String(row[3] ?? "").trim(),
+          data:        fmtDate(row[4]),
+          tipo:        "",
+        });
       }
     }
 
