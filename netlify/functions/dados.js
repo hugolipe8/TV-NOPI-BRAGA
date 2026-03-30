@@ -149,8 +149,7 @@ exports.handler = async (event) => {
       }
 
       // Ordenar por data descendente e devolver top 5
-      entries.sort((a, b) => String(b.ref).localeCompare(String(a.ref), undefined, { numeric: true, sensitivity: "base" }));
-      for (const e of entries.slice(0, 5)) {
+      for (const e of entries.slice(-5).reverse()) {
         ultimasAngariações.push({
           ref:        e.ref,
           consultor:  e.consultor,
