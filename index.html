@@ -631,7 +631,7 @@ function renderUltimas(items) {
       <div class="ult-ref">${esc(item.ref)}</div>
       <div class="ult-info">
         <div class="ult-consultor">${esc(item.consultor)}</div>
-        <div class="ult-loc">${esc(item.localidade)}</div>
+        <div class="ult-loc">${item.tipo ? esc(item.tipo) + ' · ' + esc(item.localidade) : esc(item.localidade)}</div>
       </div>
       <div class="ult-right">
         <div class="ult-valor">${valorFmt}</div>

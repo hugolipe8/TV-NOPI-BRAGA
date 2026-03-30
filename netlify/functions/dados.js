@@ -138,6 +138,7 @@ exports.handler = async (event) => {
         consultor:  String(row[62] ?? "").trim(),
         valor:      toNum(row[67]),
         data:       fmtDate(row[59]),
+        tipo:       String(row[65] ?? "").trim(),
       }));
 
     return json(
