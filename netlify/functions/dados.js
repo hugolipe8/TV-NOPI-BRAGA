@@ -120,10 +120,9 @@ exports.handler = async (event) => {
     }
 
     // ── Folha ANG — últimas angariações de Braga (coluna K, índice 10) ──────────
-    // Estrutura: cada angariação ocupa 4 linhas consecutivas na coluna K:
-    //   linha 1 = REF, linha 2 = LOCALIZAÇÃO, linha 3 = CONSULTOR, linha 4 = VALOR
-    // A tabela termina com "Total Geral". As 5 angariações mais recentes
-    // são os 20 valores imediatamente acima de "Total Geral".
+    // Imediatamente antes de "Total Geral" estão blocos de 4 linhas por angariação.
+    // Lidos de baixo para cima: VALOR, CONSULTOR, LOCALIZAÇÃO, REF.
+    // Apresentados em ordem natural do ficheiro (mais antigo primeiro).
     const wsAng = wb.Sheets["ANG"];
     const ultimasAngariações = [];
 
@@ -131,7 +130,7 @@ exports.handler = async (event) => {
       const aRows = XLSX.utils.sheet_to_json(wsAng, { header: 1, defval: "" });
       const COL   = 10; // coluna K
 
-      // Encontrar "Total Geral" da frente para trás
+      // Encontrar "Total Geral" a partir do fim
       let totalGeralIdx = -1;
       for (let i = aRows.length - 1; i >= 0; i--) {
         if (String(aRows[i][COL] ?? "").trim() === "Total Geral") {
@@ -141,20 +140,19 @@ exports.handler = async (event) => {
       }
 
       if (totalGeralIdx >= 20) {
-        // 20 linhas acima de "Total Geral" = 5 angariações × 4 linhas
         const block = aRows.slice(totalGeralIdx - 20, totalGeralIdx);
+        // block[19] = VALOR mais recente, block[0] = REF mais antiga
 
-        // Agrupar em blocos de 4
         const entries = [];
-        for (let i = 0; i < block.length; i += 4) {
-          const ref         = String(block[i    ][COL] ?? "").trim();
-          const localizacao = String(block[i + 1][COL] ?? "").trim();
-          const consultor   = String(block[i + 2][COL] ?? "").trim();
-          const valor       = toNum(block[i + 3][COL]);
+        // Ler de baixo para cima em grupos de 4: VALOR, CONSULTOR, LOCALIZAÇÃO, REF
+        for (let i = block.length - 1; i >= 3; i -= 4) {
+          const valor       = toNum(block[i    ][COL]);
+          const consultor   = String(block[i - 1][COL] ?? "").trim();
+          const localizacao = String(block[i - 2][COL] ?? "").trim();
+          const ref         = String(block[i - 3][COL] ?? "").trim();
           if (ref) entries.push({ ref, localizacao, consultor, valor });
         }
-
-        // Inverter para mostrar a mais recente (última do ficheiro) primeiro
+        // entries está [mais recente → mais antiga]; inverter para ordem natural do ficheiro
         for (const e of entries.reverse()) {
           ultimasAngariações.push({ ref: e.ref, localizacao: e.localizacao, consultor: e.consultor, valor: e.valor, tipo: "", data: "" });
         }
