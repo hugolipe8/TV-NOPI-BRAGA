@@ -1,0 +1,24 @@
+[build]
+  publish = "."
+  command = "npm install"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+[functions]
+  directory      = "netlify/functions"
+  node_bundler   = "esbuild"
+
+# Redirecionar /dados para a função serverless (URL amigável opcional)
+[[redirects]]
+  from   = "/dados"
+  to     = "/.netlify/functions/dados"
+  status = 200
+
+# Headers de segurança para o HTML
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    X-Frame-Options        = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy        = "strict-origin-when-cross-origin"

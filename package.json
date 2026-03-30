@@ -1,0 +1,10 @@
+{
+  "name": "tv-nopi-braga",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Slideshow TV Century 21 Nopi Braga — Netlify",
+  "dependencies": {
+    "node-fetch": "^2.7.0",
+    "xlsx": "^0.18.5"
+  }
+}

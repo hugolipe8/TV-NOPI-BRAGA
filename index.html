@@ -484,7 +484,7 @@
 /* ════════════════════════════════════════════
    CONFIG
 ════════════════════════════════════════════ */
-const API_URL    = 'http://localhost:8765/dados';
+const API_URL    = '/.netlify/functions/dados';
 const SLIDE_MS   = 8000;
 const REFRESH_MS = 5 * 60 * 1000;
 const GOAL_ANG   = 34;
@@ -671,7 +671,7 @@ async function loadData() {
     slideTimer = null;
     document.getElementById('loading').classList.remove('show');
     document.getElementById('err-msg').textContent =
-      `${err.message} — Certifique-se que o servidor (server.py) está a correr.`;
+      `${err.message}`;
     document.getElementById('error').classList.add('show');
   }
 }
