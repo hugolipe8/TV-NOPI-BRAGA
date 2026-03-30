@@ -164,73 +164,7 @@
       margin-top: 10px;
     }
 
-    /* ═══════════════════ SLIDE 2 — ÚLTIMAS ANGARIAÇÕES ═══════════════════ */
-    .ult-list {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      width: 100%;
-    }
-
-    .ult-row {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      padding: 16px 24px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.04);
-      border: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .ult-ref {
-      font-size: 0.9rem;
-      font-weight: 700;
-      color: var(--gold-l);
-      min-width: 120px;
-      flex-shrink: 0;
-      letter-spacing: 0.03em;
-    }
-
-    .ult-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .ult-consultor {
-      font-size: 1.1rem;
-      font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .ult-loc {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-top: 3px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .ult-right {
-      text-align: right;
-      flex-shrink: 0;
-    }
-
-    .ult-valor {
-      font-size: 1.15rem;
-      font-weight: 700;
-      color: var(--gold-l);
-    }
-
-    .ult-data {
-      font-size: 0.78rem;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    /* ═══════════════════ SLIDES 3 & 5 — RANKING ═══════════════════ */
+    /* ═══════════════════ SLIDES 2 & 4 — RANKING ═══════════════════ */
     .ranking-wrap {
       width: 100%;
       max-width: 920px;
@@ -316,9 +250,9 @@
       flex-shrink: 0;
     }
 
-    /* ═══════════════════ SLIDES 4 & 6 — COUNTDOWN ═══════════════════ */
-    #slide-3,
-    #slide-5 { text-align: center; }
+    /* ═══════════════════ SLIDES 3 & 5 — COUNTDOWN ═══════════════════ */
+    #slide-2,
+    #slide-4 { text-align: center; }
 
     .cd-number {
       font-size: 14rem;
@@ -482,17 +416,8 @@
     </div>
   </div>
 
-  <!-- Slide 2 — Últimas Angariações -->
+  <!-- Slide 2 — Ranking Angariações -->
   <div class="slide" id="slide-1">
-    <div class="ranking-wrap">
-      <div class="slide-eyebrow">Braga · Vendas e Arrendamentos</div>
-      <div class="slide-heading">Últimas Angariações</div>
-      <div class="ult-list" id="ult-ang"></div>
-    </div>
-  </div>
-
-  <!-- Slide 3 — Ranking Angariações -->
-  <div class="slide" id="slide-2">
     <div class="ranking-wrap">
       <div class="slide-eyebrow">Ranking do Mês</div>
       <div class="slide-heading">Angariações</div>
@@ -500,8 +425,8 @@
     </div>
   </div>
 
-  <!-- Slide 4 — Countdown Angariações -->
-  <div class="slide" id="slide-3">
+  <!-- Slide 3 — Countdown Angariações -->
+  <div class="slide" id="slide-2">
     <div class="slide-eyebrow">Objetivo</div>
     <div class="slide-heading">Angariações</div>
     <div class="cd-number gold" id="cd-ang-num">—</div>
@@ -516,8 +441,8 @@
     <div class="cd-success" id="cd-ang-ok"></div>
   </div>
 
-  <!-- Slide 5 — Ranking Contratos -->
-  <div class="slide" id="slide-4">
+  <!-- Slide 4 — Ranking Contratos -->
+  <div class="slide" id="slide-3">
     <div class="ranking-wrap">
       <div class="slide-eyebrow">Ranking do Mês</div>
       <div class="slide-heading">Contratos</div>
@@ -525,8 +450,8 @@
     </div>
   </div>
 
-  <!-- Slide 6 — Countdown Contratos -->
-  <div class="slide" id="slide-5">
+  <!-- Slide 5 — Countdown Contratos -->
+  <div class="slide" id="slide-4">
     <div class="slide-eyebrow">Objetivo</div>
     <div class="slide-heading">Contratos</div>
     <div class="cd-number gold" id="cd-cont-num">—</div>
@@ -553,7 +478,6 @@
   <div class="dot"></div>
   <div class="dot"></div>
   <div class="dot"></div>
-  <div class="dot"></div>
 </div>
 
 <script>
@@ -565,7 +489,7 @@ const SLIDE_MS   = 5000;
 const REFRESH_MS = 5 * 60 * 1000;
 const GOAL_ANG   = 34;
 const GOAL_CONT  = 32;
-const N_SLIDES   = 6;
+const N_SLIDES   = 5;
 const MEDALS     = ['🥇', '🥈', '🥉'];
 
 /* ════════════════════════════════════════════
@@ -610,39 +534,6 @@ function animateBar() {
 }
 
 document.addEventListener('click', () => goTo((curSlide + 1) % N_SLIDES));
-
-/* ════════════════════════════════════════════
-   RENDER — ÚLTIMAS ANGARIAÇÕES
-════════════════════════════════════════════ */
-function renderUltimas(items) {
-  const el = document.getElementById('ult-ang');
-  el.innerHTML = '';
-
-  if (!items || !items.length) {
-    el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:48px;font-size:1.1rem">Sem dados disponíveis</div>';
-    return;
-  }
-
-  items.forEach(item => {
-    const row = document.createElement('div');
-    row.className = 'ult-row';
-    const valorFmt = item.valor > 0
-      ? '\u20AC\u00A0' + Math.round(item.valor).toLocaleString('pt-PT')
-      : '—';
-    row.innerHTML = `
-      <div class="ult-ref">${esc(item.ref)}</div>
-      <div class="ult-info">
-        <div class="ult-consultor">${esc(item.consultor)}</div>
-        <div class="ult-loc">${esc(item.localizacao)}</div>
-      </div>
-      <div class="ult-right">
-        <div class="ult-valor">${valorFmt}</div>
-        <div class="ult-data">${esc(item.data)}</div>
-      </div>
-    `;
-    el.appendChild(row);
-  });
-}
 
 /* ════════════════════════════════════════════
    RENDER — RANKING
@@ -762,14 +653,11 @@ async function loadData() {
     document.getElementById('s1-ang').textContent   = d.totalAng;
     document.getElementById('s1-cont').textContent  = d.totalCont;
 
-    // Slide 2 — Últimas Angariações
-    renderUltimas(d.ultimasAngariações || []);
-
-    // Slides 3 & 5 — Rankings
+    // Slides 2 & 4 — Rankings
     renderRanking('rank-ang',  d.consultores, 'ang');
     renderRanking('rank-cont', d.consultores, 'cont');
 
-    // Slides 4 & 6 — Countdowns
+    // Slides 3 & 5 — Countdowns
     renderCountdown('cd-ang',  d.totalAng,  GOAL_ANG);
     renderCountdown('cd-cont', d.totalCont, GOAL_CONT);
 
