@@ -121,29 +121,25 @@ exports.handler = async (event) => {
 
     // ── Folha ANG — tabela a partir de A2 ────────────────────────────────────────
     // Col A (0)=REF, B (1)=Localidade, C (2)=Valor, D (3)=Consultor, E (4)=Data
-    // Filtrar linhas onde col A começa por "C0256-", tomar as últimas 5
-    // e devolvê-las em ordem inversa (mais recente primeiro).
-    const wsAng = wb.Sheets["ANG"];
+    // Últimas angariações: MOTHER sheet, col55=BRG, col57=ANG, col60=VO
     const ultimasAngariações = [];
-
-    if (wsAng) {
-      const aRows = XLSX.utils.sheet_to_json(wsAng, { header: 1, defval: "" });
-
-      const matches = aRows.filter(row => String(row[0] ?? "").trim().startsWith("C0256-"));
-
-      matches.sort((a, b) => {
-        const na = parseInt(String(a[0] ?? "").replace(/\D/g, ""), 10) || 0;
-        const nb = parseInt(String(b[0] ?? "").replace(/\D/g, ""), 10) || 0;
-        return na - nb;
-      });
-
+    {
+      const wsMother = wb.Sheets["MOTHER"];
+      const motherRows = wsMother
+        ? XLSX.utils.sheet_to_json(wsMother, { header: 1, defval: "" })
+        : [];
+      const matches = motherRows.filter(row =>
+        String(row[55] ?? "").trim().toUpperCase() === "BRG" &&
+        String(row[57] ?? "").trim().toUpperCase() === "ANG" &&
+        String(row[60] ?? "").trim().toUpperCase() === "VO"
+      );
       for (const row of matches.slice(-5).reverse()) {
         ultimasAngariações.push({
-          ref:         String(row[0] ?? "").trim(),
-          localizacao: String(row[1] ?? "").trim(),
-          valor:       toNum(row[2]),
-          consultor:   String(row[3] ?? "").trim(),
-          data:        fmtDate(row[4]),
+          ref:         String(row[61] ?? "").trim(),
+          localizacao: String(row[58] ?? "").trim(),
+          consultor:   String(row[62] ?? "").trim(),
+          valor:       toNum(row[67]),
+          data:        fmtDate(row[59]),
           tipo:        "",
         });
       }
