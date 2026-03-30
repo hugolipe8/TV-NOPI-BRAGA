@@ -119,9 +119,7 @@ exports.handler = async (event) => {
       if (ang > 0 || cont > 0) consultores.push({ nome: name, ang, cont });
     }
 
-    // ── Folha ANG — tabela a partir de A2 ────────────────────────────────────────
-    // Col A (0)=REF, B (1)=Localidade, C (2)=Valor, D (3)=Consultor, E (4)=Data
-    // Últimas angariações: MOTHER sheet, col55=BRG, col57=ANG, col60=VO
+    // ── Folha MOTHER — últimas angariações BRG/ANG/VO ───────────────────────────
     const ultimasAngariações = [];
     {
       const wsMother = wb.Sheets["MOTHER"];
