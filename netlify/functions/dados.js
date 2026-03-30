@@ -119,45 +119,45 @@ exports.handler = async (event) => {
       if (ang > 0 || cont > 0) consultores.push({ nome: name, ang, cont });
     }
 
-    // ── Folha MOTHER — últimas angariações de Braga ───────────────────────────
-    const wsMother = wb.Sheets["MOTHER"];
+    // ── Folha ANG — últimas angariações de Braga (coluna K, índice 10) ──────────
+    // Estrutura: cada angariação ocupa 4 linhas consecutivas na coluna K:
+    //   linha 1 = REF, linha 2 = LOCALIZAÇÃO, linha 3 = CONSULTOR, linha 4 = VALOR
+    // A tabela termina com "Total Geral". As 5 angariações mais recentes
+    // são os 20 valores imediatamente acima de "Total Geral".
+    const wsAng = wb.Sheets["ANG"];
     const ultimasAngariações = [];
 
-    if (wsMother) {
-      const mRows = XLSX.utils.sheet_to_json(wsMother, { header: 1, defval: "" });
-      const entries = [];
+    if (wsAng) {
+      const aRows = XLSX.utils.sheet_to_json(wsAng, { header: 1, defval: "" });
+      const COL   = 10; // coluna K
 
-      for (const row of mRows) {
-        if (row.length < 68) continue;
-
-        const agencia     = String(row[55] ?? "").trim();
-        const tipoReg     = String(row[57] ?? "").trim().toUpperCase();
-        const tipoNeg     = String(row[60] ?? "").trim().toUpperCase();
-
-        if (agencia !== "BRG")                         continue;
-        if (tipoReg !== "ANG")                         continue;
-        if (tipoNeg !== "VO" && tipoNeg !== "A")       continue;
-
-        const ref         = String(row[61] ?? "").trim();
-        const consultor   = String(row[62] ?? "").trim();
-        const localizacao = String(row[58] ?? "").trim();
-        const valor       = toNum(row[67]);
-        const dataRaw     = row[59];
-        const tipo        = tipoNeg === "VO" ? "Venda" : "Arrendamento";
-
-        entries.push({ ref, consultor, localizacao, valor, tipo, dataRaw, data: fmtDate(dataRaw) });
+      // Encontrar "Total Geral" da frente para trás
+      let totalGeralIdx = -1;
+      for (let i = aRows.length - 1; i >= 0; i--) {
+        if (String(aRows[i][COL] ?? "").trim() === "Total Geral") {
+          totalGeralIdx = i;
+          break;
+        }
       }
 
-      // Ordenar por data descendente e devolver top 5
-      for (const e of entries.slice(-5).reverse()) {
-        ultimasAngariações.push({
-          ref:        e.ref,
-          consultor:  e.consultor,
-          localizacao: e.localizacao,
-          valor:      e.valor,
-          tipo:       e.tipo,
-          data:       e.data,
-        });
+      if (totalGeralIdx >= 20) {
+        // 20 linhas acima de "Total Geral" = 5 angariações × 4 linhas
+        const block = aRows.slice(totalGeralIdx - 20, totalGeralIdx);
+
+        // Agrupar em blocos de 4
+        const entries = [];
+        for (let i = 0; i < block.length; i += 4) {
+          const ref         = String(block[i    ][COL] ?? "").trim();
+          const localizacao = String(block[i + 1][COL] ?? "").trim();
+          const consultor   = String(block[i + 2][COL] ?? "").trim();
+          const valor       = toNum(block[i + 3][COL]);
+          if (ref) entries.push({ ref, localizacao, consultor, valor });
+        }
+
+        // Inverter para mostrar a mais recente (última do ficheiro) primeiro
+        for (const e of entries.reverse()) {
+          ultimasAngariações.push({ ref: e.ref, localizacao: e.localizacao, consultor: e.consultor, valor: e.valor, tipo: "", data: "" });
+        }
       }
     }
 
