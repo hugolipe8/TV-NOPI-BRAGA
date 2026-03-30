@@ -629,14 +629,21 @@ function esc(s) {
 }
 
 /* ════════════════════════════════════════════
-   DATA — LOAD FROM LOCAL SERVER
+   DATA — LOAD
 ════════════════════════════════════════════ */
+let firstLoad = true;
+
 async function loadData() {
-  document.getElementById('loading').classList.add('show');
-  document.getElementById('error').classList.remove('show');
+  // Só mostrar o spinner no primeiro carregamento
+  if (firstLoad) {
+    document.getElementById('loading').classList.add('show');
+    document.getElementById('error').classList.remove('show');
+  }
 
   try {
-    const res = await fetch(API_URL, { cache: 'no-store' });
+    // cache:'no-cache' envia Cache-Control:no-cache ao servidor/CDN,
+    // forçando sempre uma resposta fresca (não serve cacheado)
+    const res = await fetch(API_URL, { cache: 'no-cache' });
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -658,21 +665,28 @@ async function loadData() {
     renderCountdown('cd-ang',  d.totalAng,  GOAL_ANG);
     renderCountdown('cd-cont', d.totalCont, GOAL_CONT);
 
-    document.getElementById('last-update').textContent = `Atualizado às ${d.atualizado}`;
+    // Timestamp gerado no cliente (não depende do servidor nem da CDN)
+    const now = new Date();
+    document.getElementById('last-update').textContent =
+      `Atualizado às ${pad2(now.getHours())}:${pad2(now.getMinutes())}`;
 
-    document.getElementById('loading').classList.remove('show');
-    document.getElementById('slideshow').style.display = 'block';
-
-    if (!slideTimer) goTo(0);
+    if (firstLoad) {
+      document.getElementById('loading').classList.remove('show');
+      document.getElementById('slideshow').style.display = 'block';
+      firstLoad = false;
+      goTo(0);
+    }
 
   } catch (err) {
     console.error('[TV-NOPI]', err);
-    clearTimeout(slideTimer);
-    slideTimer = null;
-    document.getElementById('loading').classList.remove('show');
-    document.getElementById('err-msg').textContent =
-      `${err.message}`;
-    document.getElementById('error').classList.add('show');
+    if (firstLoad) {
+      clearTimeout(slideTimer);
+      slideTimer = null;
+      document.getElementById('loading').classList.remove('show');
+      document.getElementById('err-msg').textContent = `${err.message}`;
+      document.getElementById('error').classList.add('show');
+    }
+    // Em background: não interromper o slideshow, tentar novamente no próximo ciclo
   }
 }
 

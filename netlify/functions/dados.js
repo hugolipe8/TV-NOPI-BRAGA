@@ -99,7 +99,6 @@ exports.handler = async (event) => {
 
     const pad = (n) => String(n).padStart(2, "0");
 
-    // Cache de 5 min na CDN do Netlify (reduz chamadas à Dropbox)
     return json(
       200,
       {
@@ -108,9 +107,8 @@ exports.handler = async (event) => {
         totalAng,
         totalCont,
         consultores,
-        atualizado: `${pad(now.getHours())}:${pad(now.getMinutes())}`,
       },
-      { "Cache-Control": "public, max-age=300, stale-while-revalidate=60" }
+      { "Cache-Control": "no-store, no-cache, must-revalidate" }
     );
 
   } catch (err) {
