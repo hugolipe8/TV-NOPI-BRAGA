@@ -562,7 +562,7 @@
 ════════════════════════════════════════════ */
 const API_URL    = '/.netlify/functions/dados';
 const SLIDE_MS   = 5000;
-const REFRESH_MS = 30 * 60 * 1000;
+const REFRESH_MS = 30 * 60 * 1000; // não usado — substituído por agendamento fixo
 const GOAL_ANG   = 34;
 const GOAL_CONT  = 32;
 const N_SLIDES   = 6;
@@ -792,7 +792,26 @@ async function loadData() {
   }
 }
 
-setInterval(loadData, REFRESH_MS);
+// Atualização agendada: 09:00, 12:00, 15:00, 18:00 (Europe/Lisbon)
+const REFRESH_HOURS = new Set([9, 12, 15, 18]);
+let lastRefreshKey  = null;
+
+function scheduleCheck() {
+  const lisbon   = new Date().toLocaleString('pt-PT', { timeZone: 'Europe/Lisbon' });
+  // lisbon: "31/03/2026, 09:00:15"
+  const timePart = lisbon.split(', ')[1] || '';
+  const h = parseInt(timePart.split(':')[0], 10);
+  const m = parseInt(timePart.split(':')[1], 10);
+  if (m === 0 && REFRESH_HOURS.has(h)) {
+    const key = lisbon.split(', ')[0] + '-' + h; // "31/03/2026-9"
+    if (key !== lastRefreshKey) {
+      lastRefreshKey = key;
+      loadData();
+    }
+  }
+}
+
+setInterval(scheduleCheck, 60 * 1000);
 loadData();
 </script>
 </body>
