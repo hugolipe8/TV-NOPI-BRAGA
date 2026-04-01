@@ -44,7 +44,6 @@ function toNum(v) {
   return Number.isFinite(n) ? n : 0;
 }
 
-/** Converte valor de célula Excel para string de data dd/mm/aaaa */
 function fmtDate(v) {
   if (v instanceof Date && !isNaN(v)) {
     const p = (n) => String(n).padStart(2, "0");
@@ -56,13 +55,6 @@ function fmtDate(v) {
     return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
   }
   return String(v || "");
-}
-
-/** Ordena datas (Date | number | string) de forma descendente */
-function dateTs(v) {
-  if (v instanceof Date) return v.getTime();
-  if (typeof v === "number") return v;
-  return 0;
 }
 
 function json(statusCode, body, extra = {}) {
@@ -82,12 +74,10 @@ exports.handler = async (event) => {
   }
 
   try {
-    // 1. Descarregar Excel
     const res = await fetch(EXCEL_URL, { timeout: 45_000 });
     if (!res.ok) throw new Error(`Dropbox respondeu HTTP ${res.status}`);
     const buf = await res.buffer();
 
-    // 2. Parsear — cellDates:true converte datas para objetos JS Date
     const wb = XLSX.read(buf, { type: "buffer", cellDates: true });
 
     // ── Folha RC ──────────────────────────────────────────────────────────────
@@ -99,7 +89,7 @@ exports.handler = async (event) => {
     const mi  = now.getMonth();
     const off = MONTH_OFFSETS[mi];
 
-    // Encontrar linha BRG dinamicamente na tabela mensal (a partir da row 50,
+    // Encontrar linha BRG dinamicamente na tabela mensal (a partir da row 50
     // para ignorar a tabela anual que também tem BRG mas aparece antes)
     let brgRowIdx = -1;
     for (let i = 50; i < rows.length; i++) {
@@ -108,12 +98,34 @@ exports.handler = async (event) => {
         break;
       }
     }
-    if (brgRowIdx === -1) throw new Error("Linha BRG não encontrada na folha RC");
+
+    // Se não há dados para este mês ainda, devolve zeros
+    if (brgRowIdx === -1) {
+      return json(200,
+        { mes: MONTH_NAMES[mi], ano: now.getFullYear(), totalAng: 0, totalCont: 0, consultores: [], ultimasAngariações: [] },
+        { "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0" }
+      );
+    }
+
+    // Encontrar colunas "Total ANGARIAÇOES" e "Total CONTRATOS" dinamicamente
+    // nos cabeçalhos acima da linha BRG.
+    // Isto funciona tanto com estrutura O/R (meses com dados) como com
+    // estrutura colapsada (meses sem dados) — posição das colunas varia.
+    let angCol = -1, contCol = -1;
+    for (let r = Math.max(0, brgRowIdx - 8); r < brgRowIdx; r++) {
+      const headerRow = rows[r] || [];
+      for (let c = off; c < off + 20; c++) {
+        const v = String(headerRow[c] ?? "").trim();
+        if (/total.{0,3}ang/i.test(v))  angCol  = c;
+        if (/total.{0,3}cont/i.test(v)) contCol = c;
+      }
+      if (angCol >= 0 && contCol >= 0) break;
+    }
 
     // Totais BRG
     const brgRow    = rows[brgRowIdx];
-    const totalAng  = toInt(brgRow[off + 2]);
-    const totalCont = toInt(brgRow[off + 4]);
+    const totalAng  = angCol  >= 0 ? toInt(brgRow[angCol])  : 0;
+    const totalCont = contCol >= 0 ? toInt(brgRow[contCol]) : 0;
 
     // Consultores — lê dinamicamente até encontrar linha de paragem
     const consultores = [];
@@ -124,8 +136,8 @@ exports.handler = async (event) => {
       const lower = name.toLowerCase();
       if (STOP.has(lower)) break;
       if (SKIP.has(lower)) continue;
-      const ang  = toInt(row[off + 2]);
-      const cont = toInt(row[off + 4]);
+      const ang  = angCol  >= 0 ? toInt(row[angCol])  : 0;
+      const cont = contCol >= 0 ? toInt(row[contCol]) : 0;
       if (ang > 0 || cont > 0) consultores.push({ nome: name, ang, cont });
     }
 
