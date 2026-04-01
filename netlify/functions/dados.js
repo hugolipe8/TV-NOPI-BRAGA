@@ -51,7 +51,6 @@ function fmtDate(v) {
     return `${p(v.getDate())}/${p(v.getMonth() + 1)}/${v.getFullYear()}`;
   }
   if (typeof v === "number" && v > 0) {
-    // serial Excel → JS Date (UTC)
     const d = new Date(Math.round((v - 25569) * 86400 * 1000));
     const p = (n) => String(n).padStart(2, "0");
     return `${p(d.getUTCDate())}/${p(d.getUTCMonth() + 1)}/${d.getUTCFullYear()}`;
@@ -62,7 +61,7 @@ function fmtDate(v) {
 /** Ordena datas (Date | number | string) de forma descendente */
 function dateTs(v) {
   if (v instanceof Date) return v.getTime();
-  if (typeof v === "number") return v; // serial Excel — ordem relativa correcta
+  if (typeof v === "number") return v;
   return 0;
 }
 
@@ -100,14 +99,25 @@ exports.handler = async (event) => {
     const mi  = now.getMonth();
     const off = MONTH_OFFSETS[mi];
 
-    // Totais BRG (linha índice 66)
-    const brgRow    = rows[66] || [];
+    // Encontrar linha BRG dinamicamente na tabela mensal (a partir da row 50,
+    // para ignorar a tabela anual que também tem BRG mas aparece antes)
+    let brgRowIdx = -1;
+    for (let i = 50; i < rows.length; i++) {
+      if (String(rows[i][off] ?? "").trim().toUpperCase() === "BRG") {
+        brgRowIdx = i;
+        break;
+      }
+    }
+    if (brgRowIdx === -1) throw new Error("Linha BRG não encontrada na folha RC");
+
+    // Totais BRG
+    const brgRow    = rows[brgRowIdx];
     const totalAng  = toInt(brgRow[off + 2]);
     const totalCont = toInt(brgRow[off + 4]);
 
-    // Consultores (a partir da linha índice 67)
+    // Consultores — lê dinamicamente até encontrar linha de paragem
     const consultores = [];
-    for (let i = 67; i < rows.length; i++) {
+    for (let i = brgRowIdx + 1; i < rows.length; i++) {
       const row   = rows[i];
       const name  = String(row[off] ?? "").trim();
       if (!name) continue;
@@ -119,7 +129,7 @@ exports.handler = async (event) => {
       if (ang > 0 || cont > 0) consultores.push({ nome: name, ang, cont });
     }
 
-    // ── Folha MOTHER — últimas angariações BRG/ANG/VO ───────────────────────────
+    // ── Folha MOTHER — últimas angariações BRG/ANG/VO ────────────────────────
     const wsMother = wb.Sheets["MOTHER"];
     const motherRows = wsMother
       ? XLSX.utils.sheet_to_json(wsMother, { header: 1, defval: "" })
