@@ -6,9 +6,6 @@
 const fetch = require("node-fetch");
 const XLSX  = require("xlsx");
 
-// ─────────────────────────────────────────────────────────────────────────────
-// CONFIG
-// ─────────────────────────────────────────────────────────────────────────────
 const EXCEL_URL = [
   "https://www.dropbox.com/scl/fi/y4i9m6v4q8snd2m3qljoh/Motherboard-2026.xlsx",
   "?rlkey=4px2hpxbg8p6fot2l65bkdamg&st=4h2vu72e&dl=1",
@@ -20,6 +17,14 @@ const MONTH_NAMES   = [
   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
 
+// Estrutura BRG mensal (quando há dados): O,R,O,R,O,R,O,R,O,R
+// off+1=FAT-O  off+2=FAT-R
+// off+3=ANG-O  off+4=ANG-R  ← angariações reais
+// off+5=PROP-O off+6=PROP-R
+// off+7=CONT-O off+8=CONT-R ← contratos reais
+const ANG_COL  = 4;
+const CONT_COL = 8;
+
 const SKIP = new Set(["brg","cg","ag","fp","cm"]);
 const STOP = new Set(["total geral","cessados"]);
 
@@ -29,9 +34,6 @@ const CORS = {
   "Access-Control-Allow-Headers": "Content-Type",
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────────────────
 function toInt(v) {
   if (v == null || v === "") return 0;
   const n = parseFloat(String(v));
@@ -65,9 +67,6 @@ function json(statusCode, body, extra = {}) {
   };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-// HANDLER
-// ─────────────────────────────────────────────────────────────────────────────
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: CORS, body: "" };
@@ -89,8 +88,8 @@ exports.handler = async (event) => {
     const mi  = now.getMonth();
     const off = MONTH_OFFSETS[mi];
 
-    // Encontrar linha BRG dinamicamente na tabela mensal (a partir da row 50
-    // para ignorar a tabela anual que também tem BRG mas aparece antes)
+    // Encontrar linha BRG dinamicamente (a partir da row 50 para ignorar
+    // a tabela anual que também tem BRG mas aparece antes, na row 11)
     let brgRowIdx = -1;
     for (let i = 50; i < rows.length; i++) {
       if (String(rows[i][off] ?? "").trim().toUpperCase() === "BRG") {
@@ -99,7 +98,7 @@ exports.handler = async (event) => {
       }
     }
 
-    // Se não há dados para este mês ainda, devolve zeros
+    // Se não há dados para este mês, devolve zeros
     if (brgRowIdx === -1) {
       return json(200,
         { mes: MONTH_NAMES[mi], ano: now.getFullYear(), totalAng: 0, totalCont: 0, consultores: [], ultimasAngariações: [] },
@@ -107,25 +106,10 @@ exports.handler = async (event) => {
       );
     }
 
-    // Encontrar colunas "Total ANGARIAÇOES" e "Total CONTRATOS" dinamicamente
-    // nos cabeçalhos acima da linha BRG.
-    // Isto funciona tanto com estrutura O/R (meses com dados) como com
-    // estrutura colapsada (meses sem dados) — posição das colunas varia.
-    let angCol = -1, contCol = -1;
-    for (let r = Math.max(0, brgRowIdx - 8); r < brgRowIdx; r++) {
-      const headerRow = rows[r] || [];
-      for (let c = off; c < off + 20; c++) {
-        const v = String(headerRow[c] ?? "").trim();
-        if (/total.{0,3}ang/i.test(v))  angCol  = c;
-        if (/total.{0,3}cont/i.test(v)) contCol = c;
-      }
-      if (angCol >= 0 && contCol >= 0) break;
-    }
-
-    // Totais BRG
+    // Totais BRG — usa colunas R (reais): ANG-R=off+4, CONT-R=off+8
     const brgRow    = rows[brgRowIdx];
-    const totalAng  = angCol  >= 0 ? toInt(brgRow[angCol])  : 0;
-    const totalCont = contCol >= 0 ? toInt(brgRow[contCol]) : 0;
+    const totalAng  = toInt(brgRow[off + ANG_COL]);
+    const totalCont = toInt(brgRow[off + CONT_COL]);
 
     // Consultores — lê dinamicamente até encontrar linha de paragem
     const consultores = [];
@@ -136,8 +120,8 @@ exports.handler = async (event) => {
       const lower = name.toLowerCase();
       if (STOP.has(lower)) break;
       if (SKIP.has(lower)) continue;
-      const ang  = angCol  >= 0 ? toInt(row[angCol])  : 0;
-      const cont = contCol >= 0 ? toInt(row[contCol]) : 0;
+      const ang  = toInt(row[off + ANG_COL]);
+      const cont = toInt(row[off + CONT_COL]);
       if (ang > 0 || cont > 0) consultores.push({ nome: name, ang, cont });
     }
 
