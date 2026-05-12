@@ -11,17 +11,12 @@ const EXCEL_URL = [
   "?rlkey=4px2hpxbg8p6fot2l65bkdamg&st=4h2vu72e&dl=1",
 ].join("");
 
-const MONTH_OFFSETS = [0, 17, 30, 42, 54, 66, 78, 90, 102, 114, 126, 138];
+const MONTH_OFFSETS = [0, 17, 30, 42, 59, 71, 83, 95, 107, 119, 131, 143];
 const MONTH_NAMES   = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
 
-// Estrutura BRG mensal (quando há dados): O,R,O,R,O,R,O,R,O,R
-// off+1=FAT-O  off+2=FAT-R
-// off+3=ANG-O  off+4=ANG-R  ← angariações reais
-// off+5=PROP-O off+6=PROP-R
-// off+7=CONT-O off+8=CONT-R ← contratos reais
 const ANG_COL  = 4;
 const CONT_COL = 8;
 
@@ -79,7 +74,6 @@ exports.handler = async (event) => {
 
     const wb = XLSX.read(buf, { type: "buffer", cellDates: true });
 
-    // ── Folha RC ──────────────────────────────────────────────────────────────
     const ws = wb.Sheets["RC"];
     if (!ws) throw new Error('Folha "RC" não encontrada no ficheiro Excel.');
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
@@ -88,17 +82,23 @@ exports.handler = async (event) => {
     const mi  = now.getMonth();
     const off = MONTH_OFFSETS[mi];
 
-    // Encontrar linha BRG dinamicamente (a partir da row 50 para ignorar
-    // a tabela anual que também tem BRG mas aparece antes, na row 11)
+    // Encontrar linha BRG em off OU off+1 (estrutura pode variar por mês)
     let brgRowIdx = -1;
+    let nameCol = off;
+
     for (let i = 50; i < rows.length; i++) {
       if (String(rows[i][off] ?? "").trim().toUpperCase() === "BRG") {
         brgRowIdx = i;
+        nameCol = off;
+        break;
+      }
+      if (String(rows[i][off + 1] ?? "").trim().toUpperCase() === "BRG") {
+        brgRowIdx = i;
+        nameCol = off + 1;
         break;
       }
     }
 
-    // Se não há dados para este mês, devolve zeros
     if (brgRowIdx === -1) {
       return json(200,
         { mes: MONTH_NAMES[mi], ano: now.getFullYear(), totalAng: 0, totalCont: 0, consultores: [], ultimasAngariações: [] },
@@ -106,22 +106,22 @@ exports.handler = async (event) => {
       );
     }
 
-    // Totais BRG — usa colunas R (reais): ANG-R=off+4, CONT-R=off+8
+    // Totais BRG
     const brgRow    = rows[brgRowIdx];
-    const totalAng  = toInt(brgRow[off + ANG_COL]);
-    const totalCont = toInt(brgRow[off + CONT_COL]);
+    const totalAng  = toInt(brgRow[nameCol + ANG_COL]);
+    const totalCont = toInt(brgRow[nameCol + CONT_COL]);
 
-    // Consultores — lê dinamicamente até encontrar linha de paragem
+    // Consultores
     const consultores = [];
     for (let i = brgRowIdx + 1; i < rows.length; i++) {
       const row   = rows[i];
-      const name  = String(row[off] ?? "").trim();
+      const name  = String(row[nameCol] ?? "").trim();
       if (!name) continue;
       const lower = name.toLowerCase();
       if (STOP.has(lower)) break;
       if (SKIP.has(lower)) continue;
-      const ang  = toInt(row[off + ANG_COL]);
-      const cont = toInt(row[off + CONT_COL]);
+      const ang  = toInt(row[nameCol + ANG_COL]);
+      const cont = toInt(row[nameCol + CONT_COL]);
       if (ang > 0 || cont > 0) consultores.push({ nome: name, ang, cont });
     }
 
