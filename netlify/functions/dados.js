@@ -17,9 +17,6 @@ const MONTH_NAMES   = [
   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
 
-const ANG_COL  = 4;
-const CONT_COL = 8;
-
 const SKIP = new Set(["brg","cg","ag","fp","cm"]);
 const STOP = new Set(["total geral","cessados"]);
 
@@ -62,6 +59,17 @@ function json(statusCode, body, extra = {}) {
   };
 }
 
+// Detecta se a estrutura tem colunas O/R ou apenas R
+function hasORStructure(rows, headerRowStart, headerRowEnd, nameCol) {
+  for (let r = headerRowStart; r <= headerRowEnd; r++) {
+    const row = rows[r] || [];
+    for (let c = nameCol + 1; c < nameCol + 6; c++) {
+      if (String(row[c] ?? "").trim() === "O") return true;
+    }
+  }
+  return false;
+}
+
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: CORS, body: "" };
@@ -82,7 +90,7 @@ exports.handler = async (event) => {
     const mi  = now.getMonth();
     const off = MONTH_OFFSETS[mi];
 
-    // Encontrar linha BRG em off OU off+1 (estrutura pode variar por mês)
+    // Encontrar linha BRG em off OU off+1
     let brgRowIdx = -1;
     let nameCol = off;
 
@@ -106,10 +114,18 @@ exports.handler = async (event) => {
       );
     }
 
+    // Detectar estrutura O/R
+    const isOR = hasORStructure(rows, Math.max(0, brgRowIdx - 8), brgRowIdx - 1, nameCol);
+
+    // Colunas consoante estrutura
+    const fatCol  = isOR ? nameCol + 2 : nameCol + 1;
+    const angCol  = isOR ? nameCol + 4 : nameCol + 2;
+    const contCol = isOR ? nameCol + 8 : nameCol + 4;
+
     // Totais BRG
     const brgRow    = rows[brgRowIdx];
-    const totalAng  = toInt(brgRow[nameCol + ANG_COL]);
-    const totalCont = toInt(brgRow[nameCol + CONT_COL]);
+    const totalAng  = toInt(brgRow[angCol]);
+    const totalCont = toInt(brgRow[contCol]);
 
     // Consultores
     const consultores = [];
@@ -120,8 +136,8 @@ exports.handler = async (event) => {
       const lower = name.toLowerCase();
       if (STOP.has(lower)) break;
       if (SKIP.has(lower)) continue;
-      const ang  = toInt(row[nameCol + ANG_COL]);
-      const cont = toInt(row[nameCol + CONT_COL]);
+      const ang  = toInt(row[angCol]);
+      const cont = toInt(row[contCol]);
       if (ang > 0 || cont > 0) consultores.push({ nome: name, ang, cont });
     }
 
