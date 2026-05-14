@@ -27,7 +27,6 @@
       cursor: none;
     }
 
-    /* ═══════════════════ SLIDESHOW ═══════════════════ */
     .slideshow {
       width: 100vw;
       height: 100vh;
@@ -47,7 +46,6 @@
     }
     .slide.active { opacity: 1; }
 
-    /* ═══════════════════ CHROME ═══════════════════ */
     #progress-bar {
       position: fixed;
       bottom: 0; left: 0;
@@ -93,7 +91,7 @@
     }
     .dot.active { background: var(--gold); }
 
-    /* ═══════════════════ SLIDE 1 — ABERTURA ═══════════════════ */
+    /* SLIDE 1 — ABERTURA */
     #slide-0 { text-align: center; }
 
     .s1-tag {
@@ -164,7 +162,7 @@
       margin-top: 10px;
     }
 
-    /* ═══════════════════ SLIDE 2 — ÚLTIMAS ANGARIAÇÕES ═══════════════════ */
+    /* SLIDE 2 — ÚLTIMAS ANGARIAÇÕES */
     .ult-list {
       display: flex;
       flex-direction: column;
@@ -191,10 +189,7 @@
       letter-spacing: 0.03em;
     }
 
-    .ult-info {
-      flex: 1;
-      min-width: 0;
-    }
+    .ult-info { flex: 1; min-width: 0; }
 
     .ult-consultor {
       font-size: 1.1rem;
@@ -213,10 +208,7 @@
       text-overflow: ellipsis;
     }
 
-    .ult-right {
-      text-align: right;
-      flex-shrink: 0;
-    }
+    .ult-right { text-align: right; flex-shrink: 0; }
 
     .ult-valor {
       font-size: 1.15rem;
@@ -230,7 +222,7 @@
       margin-top: 4px;
     }
 
-    /* ═══════════════════ SLIDES 3 & 5 — RANKING ═══════════════════ */
+    /* SLIDES 3 & 5 — RANKING */
     .ranking-wrap {
       width: 100%;
       max-width: 920px;
@@ -253,11 +245,7 @@
       margin-bottom: 40px;
     }
 
-    .rank-list {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
+    .rank-list { display: flex; flex-direction: column; gap: 14px; }
 
     .rank-row {
       display: flex;
@@ -274,12 +262,7 @@
       border-color: rgba(184,160,106,0.35);
     }
 
-    .rank-pos {
-      font-size: 1.6rem;
-      min-width: 48px;
-      text-align: center;
-      flex-shrink: 0;
-    }
+    .rank-pos { font-size: 1.6rem; min-width: 48px; text-align: center; flex-shrink: 0; }
 
     .rank-name {
       font-size: 1.15rem;
@@ -316,80 +299,95 @@
       flex-shrink: 0;
     }
 
-    /* ═══════════════════ SLIDES 4 & 6 — COUNTDOWN ═══════════════════ */
+    /* SLIDES 4 & 6 — COUNTDOWN (novo design) */
     #slide-3,
     #slide-5 { text-align: center; }
 
-    .cd-number {
-      font-size: 14rem;
+    .cd-cards {
+      display: flex;
+      gap: 24px;
+      justify-content: center;
+      width: 100%;
+      max-width: 600px;
+      margin-top: 32px;
+    }
+
+    .cd-card {
+      background: rgba(184,160,106,0.08);
+      border: 1px solid rgba(184,160,106,0.25);
+      border-radius: 16px;
+      padding: 28px 40px;
+      text-align: center;
+      flex: 1;
+    }
+
+    .cd-card-label {
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      color: rgba(255,255,255,0.4);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .cd-card-val {
+      font-size: 4rem;
       font-weight: 900;
       line-height: 1;
     }
 
-    .cd-number.gold  { color: var(--gold-l); }
-    .cd-number.green { color: var(--green); }
-    .cd-number.red   {
-      color: var(--red);
-      animation: blink 1s ease-in-out infinite;
+    .cd-card-val.gold  { color: var(--gold-l); }
+    .cd-card-val.white { color: #fff; }
+
+    .cd-card-divider {
+      width: 40px;
+      height: 1px;
+      background: rgba(255,255,255,0.12);
+      margin: 14px auto;
     }
 
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50%       { opacity: 0.2; }
+    .cd-card-sub {
+      font-size: 0.82rem;
+      color: rgba(255,255,255,0.45);
     }
 
-    .cd-sublabel {
-      font-size: 1.5rem;
-      font-weight: 400;
-      color: var(--muted);
-      margin-top: 14px;
+    .cd-card-sub em {
+      color: rgba(255,255,255,0.75);
+      font-style: normal;
+      font-weight: 500;
     }
 
-    .cd-prog-wrap {
-      width: 620px;
-      margin: 40px auto 12px;
-    }
-
-    .cd-prog-track {
-      height: 12px;
+    .cd-track {
+      height: 6px;
       background: rgba(255,255,255,0.08);
-      border-radius: 6px;
+      border-radius: 3px;
+      margin-top: 14px;
       overflow: hidden;
     }
 
-    .cd-prog-fill {
-      height: 100%;
-      border-radius: 6px;
+    .cd-fill {
+      height: 6px;
+      background: var(--gold);
+      border-radius: 3px;
       width: 0%;
       transition: width 1.2s ease;
     }
 
-    .cd-prog-fill.gold-fill  { background: linear-gradient(90deg, var(--gold), var(--gold-l)); }
-    .cd-prog-fill.green-fill { background: var(--green); }
-
-    .cd-prog-pct {
-      font-size: 0.85rem;
-      color: var(--muted);
-      margin-top: 8px;
-      text-align: center;
-    }
-
-    .cd-meta {
-      font-size: 1.1rem;
-      font-weight: 500;
-      color: rgba(255,255,255,0.55);
-      margin-top: 20px;
+    .cd-pct {
+      font-size: 11px;
+      color: rgba(255,255,255,0.35);
+      margin-top: 6px;
     }
 
     .cd-success {
       font-size: 1.7rem;
       font-weight: 700;
       color: var(--green);
-      margin-top: 14px;
+      margin-top: 20px;
       min-height: 2rem;
     }
 
-    /* ═══════════════════ OVERLAYS ═══════════════════ */
+    /* OVERLAYS */
     .overlay {
       position: fixed;
       inset: 0;
@@ -413,21 +411,11 @@
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .loading-lbl {
-      margin-top: 24px;
-      font-size: 1.1rem;
-      color: var(--muted);
-    }
+    .loading-lbl { margin-top: 24px; font-size: 1.1rem; color: var(--muted); }
 
     .err-icon  { font-size: 3.5rem; margin-bottom: 20px; }
     .err-title { font-size: 1.8rem; font-weight: 700; color: var(--red); margin-bottom: 12px; }
-    .err-msg   {
-      font-size: 1rem;
-      color: var(--muted);
-      max-width: 540px;
-      margin-bottom: 32px;
-      line-height: 1.65;
-    }
+    .err-msg   { font-size: 1rem; color: var(--muted); max-width: 540px; margin-bottom: 32px; line-height: 1.65; }
 
     .btn-retry {
       background: var(--gold);
@@ -446,13 +434,11 @@
 </head>
 <body>
 
-<!-- ─── Loading ─── -->
 <div class="overlay show" id="loading">
   <div class="spinner"></div>
   <div class="loading-lbl">A carregar dados…</div>
 </div>
 
-<!-- ─── Error ─── -->
 <div class="overlay" id="error">
   <div class="err-icon">⚠️</div>
   <div class="err-title">Erro ao carregar dados</div>
@@ -460,7 +446,6 @@
   <button class="btn-retry" onclick="loadData()">Tentar novamente</button>
 </div>
 
-<!-- ─── Slideshow ─── -->
 <div class="slideshow" id="slideshow" style="display:none">
 
   <!-- Slide 1 — Abertura -->
@@ -502,17 +487,23 @@
 
   <!-- Slide 4 — Countdown Angariações -->
   <div class="slide" id="slide-3">
-    <div class="slide-eyebrow">Objetivo</div>
-    <div class="slide-heading">Angariações</div>
-    <div class="cd-number gold" id="cd-ang-num">—</div>
-    <div class="cd-sublabel" id="cd-ang-sub"></div>
-    <div class="cd-prog-wrap">
-      <div class="cd-prog-track">
-        <div class="cd-prog-fill gold-fill" id="cd-ang-bar"></div>
+    <div class="slide-eyebrow">Objetivo · Angariações</div>
+    <div class="cd-cards">
+      <div class="cd-card">
+        <div class="cd-card-label">Realizadas</div>
+        <div class="cd-card-val gold" id="cd-ang-real">—</div>
+        <div class="cd-card-divider"></div>
+        <div class="cd-card-sub">meta <em id="cd-ang-goal-lbl">—</em></div>
+        <div class="cd-track"><div class="cd-fill" id="cd-ang-bar"></div></div>
+        <div class="cd-pct" id="cd-ang-pct"></div>
       </div>
-      <div class="cd-prog-pct" id="cd-ang-pct"></div>
+      <div class="cd-card">
+        <div class="cd-card-label">Faltam</div>
+        <div class="cd-card-val white" id="cd-ang-rem">—</div>
+        <div class="cd-card-divider"></div>
+        <div class="cd-card-sub">para a meta</div>
+      </div>
     </div>
-    <div class="cd-meta" id="cd-ang-meta"></div>
     <div class="cd-success" id="cd-ang-ok"></div>
   </div>
 
@@ -527,23 +518,28 @@
 
   <!-- Slide 6 — Countdown Contratos -->
   <div class="slide" id="slide-5">
-    <div class="slide-eyebrow">Objetivo</div>
-    <div class="slide-heading">Contratos</div>
-    <div class="cd-number gold" id="cd-cont-num">—</div>
-    <div class="cd-sublabel" id="cd-cont-sub"></div>
-    <div class="cd-prog-wrap">
-      <div class="cd-prog-track">
-        <div class="cd-prog-fill gold-fill" id="cd-cont-bar"></div>
+    <div class="slide-eyebrow">Objetivo · Contratos</div>
+    <div class="cd-cards">
+      <div class="cd-card">
+        <div class="cd-card-label">Realizados</div>
+        <div class="cd-card-val gold" id="cd-cont-real">—</div>
+        <div class="cd-card-divider"></div>
+        <div class="cd-card-sub">meta <em id="cd-cont-goal-lbl">—</em></div>
+        <div class="cd-track"><div class="cd-fill" id="cd-cont-bar"></div></div>
+        <div class="cd-pct" id="cd-cont-pct"></div>
       </div>
-      <div class="cd-prog-pct" id="cd-cont-pct"></div>
+      <div class="cd-card">
+        <div class="cd-card-label">Faltam</div>
+        <div class="cd-card-val white" id="cd-cont-rem">—</div>
+        <div class="cd-card-divider"></div>
+        <div class="cd-card-sub">para a meta</div>
+      </div>
     </div>
-    <div class="cd-meta" id="cd-cont-meta"></div>
     <div class="cd-success" id="cd-cont-ok"></div>
   </div>
 
 </div>
 
-<!-- Chrome UI -->
 <div id="progress-bar"></div>
 <div id="clock"></div>
 <div id="last-update"></div>
@@ -557,26 +553,16 @@
 </div>
 
 <script>
-/* ════════════════════════════════════════════
-   CONFIG
-════════════════════════════════════════════ */
-const API_URL    = '/.netlify/functions/dados';
-const SLIDE_MS   = 5000;
-const REFRESH_MS = 30 * 60 * 1000; // não usado — substituído por agendamento fixo
-const GOAL_ANG   = 34;
-const GOAL_CONT  = 32;
-const N_SLIDES   = 6;
-const MEDALS     = ['🥇', '🥈', '🥉'];
+const API_URL  = '/.netlify/functions/dados';
+const SLIDE_MS = 5000;
+const GOAL_ANG  = 34;
+const GOAL_CONT = 32;
+const N_SLIDES  = 6;
+const MEDALS    = ['🥇', '🥈', '🥉'];
 
-/* ════════════════════════════════════════════
-   STATE
-════════════════════════════════════════════ */
 let curSlide   = 0;
 let slideTimer = null;
 
-/* ════════════════════════════════════════════
-   CLOCK
-════════════════════════════════════════════ */
 function pad2(n) { return String(n).padStart(2, '0'); }
 
 function tick() {
@@ -587,9 +573,6 @@ function tick() {
 setInterval(tick, 1000);
 tick();
 
-/* ════════════════════════════════════════════
-   SLIDESHOW
-════════════════════════════════════════════ */
 function goTo(idx) {
   document.querySelectorAll('.slide').forEach((s, i) => s.classList.toggle('active', i === idx));
   document.querySelectorAll('.dot').forEach((d, i)  => d.classList.toggle('active', i === idx));
@@ -611,9 +594,6 @@ function animateBar() {
 
 document.addEventListener('click', () => goTo((curSlide + 1) % N_SLIDES));
 
-/* ════════════════════════════════════════════
-   RENDER — ÚLTIMAS ANGARIAÇÕES
-════════════════════════════════════════════ */
 function renderUltimas(items) {
   const el = document.getElementById('ult-ang');
   el.innerHTML = '';
@@ -642,25 +622,18 @@ function renderUltimas(items) {
   });
 }
 
-/* ════════════════════════════════════════════
-   RENDER — RANKING
-════════════════════════════════════════════ */
 function renderRanking(listId, consultores, field) {
   const el = document.getElementById(listId);
   el.innerHTML = '';
-
   const sorted = [...consultores]
     .filter(c => c[field] > 0)
     .sort((a, b) => b[field] - a[field])
     .slice(0, 7);
-
   if (!sorted.length) {
     el.innerHTML = '<div style="text-align:center;color:var(--muted);padding:48px;font-size:1.1rem">Sem dados disponíveis</div>';
     return;
   }
-
   const max = sorted[0][field];
-
   sorted.forEach((c, i) => {
     const pct = max > 0 ? Math.round(c[field] / max * 100) : 0;
     const pos = MEDALS[i] !== undefined ? MEDALS[i] : String(i + 1);
@@ -674,7 +647,6 @@ function renderRanking(listId, consultores, field) {
     `;
     el.appendChild(row);
   });
-
   requestAnimationFrame(() => requestAnimationFrame(() => {
     el.querySelectorAll('.rank-bar-fill').forEach(b => {
       b.style.width = b.dataset.pct + '%';
@@ -682,50 +654,30 @@ function renderRanking(listId, consultores, field) {
   }));
 }
 
-/* ════════════════════════════════════════════
-   RENDER — COUNTDOWN
-════════════════════════════════════════════ */
 function renderCountdown(prefix, current, goal) {
-  const remaining = goal - current;
+  const remaining = Math.max(0, goal - current);
   const pct       = Math.min(100, Math.round(current / goal * 100));
   const achieved  = current >= goal;
-  const urgent    = !achieved && remaining <= 5;
 
-  const numEl  = document.getElementById(`${prefix}-num`);
-  const subEl  = document.getElementById(`${prefix}-sub`);
-  const barEl  = document.getElementById(`${prefix}-bar`);
-  const pctEl  = document.getElementById(`${prefix}-pct`);
-  const metaEl = document.getElementById(`${prefix}-meta`);
-  const okEl   = document.getElementById(`${prefix}-ok`);
+  document.getElementById(`${prefix}-real`).textContent     = current;
+  document.getElementById(`${prefix}-goal-lbl`).textContent = goal;
+  document.getElementById(`${prefix}-rem`).textContent      = achieved ? '✓' : remaining;
+  document.getElementById(`${prefix}-pct`).textContent      = `${pct}% concluído`;
 
-  if (achieved) {
-    numEl.textContent = '✓';
-    numEl.className   = 'cd-number green';
-    subEl.textContent = 'Meta atingida!';
-    barEl.className   = 'cd-prog-fill green-fill';
-    okEl.textContent  = current > goal
-      ? `✅ Superámos a meta em ${current - goal}!`
-      : '✅ Meta atingida com exatidão!';
-  } else {
-    numEl.textContent = remaining;
-    numEl.className   = 'cd-number ' + (urgent ? 'red' : 'gold');
-    subEl.textContent = remaining === 1 ? 'falta para a meta' : 'faltam para a meta';
-    barEl.className   = 'cd-prog-fill gold-fill';
-    okEl.textContent  = '';
-  }
-
-  barEl.style.width = '0%';
+  const bar = document.getElementById(`${prefix}-bar`);
+  bar.style.width = '0%';
   requestAnimationFrame(() => requestAnimationFrame(() => {
-    barEl.style.width = pct + '%';
+    bar.style.width = pct + '%';
   }));
 
-  pctEl.textContent  = `${pct}% concluído`;
-  metaEl.textContent = `${current} feitas · Meta: ${goal}`;
+  const okEl = document.getElementById(`${prefix}-ok`);
+  okEl.textContent = achieved
+    ? current > goal
+      ? `✅ Superámos a meta em ${current - goal}!`
+      : '✅ Meta atingida!'
+    : '';
 }
 
-/* ════════════════════════════════════════════
-   HELPERS
-════════════════════════════════════════════ */
 function esc(s) {
   return String(s)
     .replace(/&/g, '&amp;')
@@ -734,9 +686,6 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
-/* ════════════════════════════════════════════
-   DATA — LOAD
-════════════════════════════════════════════ */
 let firstLoad = true;
 
 async function loadData() {
@@ -744,28 +693,21 @@ async function loadData() {
     document.getElementById('loading').classList.add('show');
     document.getElementById('error').classList.remove('show');
   }
-
   try {
     const res = await fetch(API_URL, { cache: 'no-cache' });
-
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       throw new Error(body.erro || `Servidor respondeu com HTTP ${res.status}`);
     }
-
     const d = await res.json();
 
-    // Slide 1 — Abertura
     document.getElementById('s1-month').textContent = `${d.mes} ${d.ano}`;
     document.getElementById('s1-ang').textContent   = d.totalAng;
     document.getElementById('s1-cont').textContent  = d.totalCont;
 
-    // Slides 2 & 4 — Rankings
     renderUltimas(d.ultimasAngariações || []);
     renderRanking('rank-ang',  d.consultores, 'ang');
     renderRanking('rank-cont', d.consultores, 'cont');
-
-    // Slides 3 & 5 — Countdowns
     renderCountdown('cd-ang',  d.totalAng,  GOAL_ANG);
     renderCountdown('cd-cont', d.totalCont, GOAL_CONT);
 
@@ -779,7 +721,6 @@ async function loadData() {
       firstLoad = false;
       goTo(0);
     }
-
   } catch (err) {
     console.error('[TV-NOPI]', err);
     if (firstLoad) {
@@ -792,18 +733,16 @@ async function loadData() {
   }
 }
 
-// Atualização agendada: 09:00, 12:00, 15:00, 18:00 (Europe/Lisbon)
 const REFRESH_HOURS = new Set([9, 12, 15, 18]);
 let lastRefreshKey  = null;
 
 function scheduleCheck() {
   const lisbon   = new Date().toLocaleString('pt-PT', { timeZone: 'Europe/Lisbon' });
-  // lisbon: "31/03/2026, 09:00:15"
   const timePart = lisbon.split(', ')[1] || '';
   const h = parseInt(timePart.split(':')[0], 10);
   const m = parseInt(timePart.split(':')[1], 10);
   if (m === 0 && REFRESH_HOURS.has(h)) {
-    const key = lisbon.split(', ')[0] + '-' + h; // "31/03/2026-9"
+    const key = lisbon.split(', ')[0] + '-' + h;
     if (key !== lastRefreshKey) {
       lastRefreshKey = key;
       loadData();
