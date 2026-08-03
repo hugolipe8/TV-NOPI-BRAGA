@@ -2,42 +2,34 @@
  * Netlify Serverless Function — TV Nopi Braga
  * GET /.netlify/functions/dados
  */
-
 const fetch = require("node-fetch");
 const XLSX  = require("xlsx");
-
 const EXCEL_URL = [
-  "https://www.dropbox.com/scl/fi/y4i9m6v4q8snd2m3qljoh/Motherboard-2026.xlsx",
-  "?rlkey=4px2hpxbg8p6fot2l65bkdamg&st=4h2vu72e&dl=1",
+  "https://www.dropbox.com/scl/fi/q1e1l6enrinhm8ileg903/Motherboard-2026.xlsx",
+  "?rlkey=lke29p1fipcrj8l4dl3hqb8gi&st=hrc3v22k&dl=1",
 ].join("");
-
-const MONTH_OFFSETS = [0, 17, 30, 42, 59, 72, 83, 95, 107, 119, 131, 143];
+const MONTH_OFFSETS = [0, 17, 30, 42, 59, 72, 89, 95, 107, 119, 131, 143];
 const MONTH_NAMES   = [
   "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
   "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro",
 ];
-
 const SKIP = new Set(["brg","cg","ag","fp","cm"]);
 const STOP = new Set(["total geral","cessados"]);
-
 const CORS = {
   "Access-Control-Allow-Origin":  "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type",
 };
-
 function toInt(v) {
   if (v == null || v === "") return 0;
   const n = parseFloat(String(v));
   return Number.isFinite(n) ? Math.round(n) : 0;
 }
-
 function toNum(v) {
   if (v == null || v === "") return 0;
   const n = parseFloat(String(v).replace(",", "."));
   return Number.isFinite(n) ? n : 0;
 }
-
 function fmtDate(v) {
   if (v instanceof Date && !isNaN(v)) {
     const p = (n) => String(n).padStart(2, "0");
@@ -50,7 +42,6 @@ function fmtDate(v) {
   }
   return String(v || "");
 }
-
 function json(statusCode, body, extra = {}) {
   return {
     statusCode,
@@ -58,8 +49,6 @@ function json(statusCode, body, extra = {}) {
     body: JSON.stringify(body),
   };
 }
-
-// Detecta se a estrutura tem colunas O/R ou apenas R
 function hasORStructure(rows, headerRowStart, headerRowEnd, nameCol) {
   for (let r = headerRowStart; r <= headerRowEnd; r++) {
     const row = rows[r] || [];
@@ -69,31 +58,23 @@ function hasORStructure(rows, headerRowStart, headerRowEnd, nameCol) {
   }
   return false;
 }
-
 exports.handler = async (event) => {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 204, headers: CORS, body: "" };
   }
-
   try {
     const res = await fetch(EXCEL_URL, { timeout: 45_000 });
     if (!res.ok) throw new Error(`Dropbox respondeu HTTP ${res.status}`);
     const buf = await res.buffer();
-
     const wb = XLSX.read(buf, { type: "buffer", cellDates: true });
-
     const ws = wb.Sheets["RC"];
     if (!ws) throw new Error('Folha "RC" não encontrada no ficheiro Excel.');
     const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
-
     const now = new Date();
     const mi  = now.getMonth();
     const off = MONTH_OFFSETS[mi];
-
-    // Encontrar linha BRG em off OU off+1
     let brgRowIdx = -1;
     let nameCol = off;
-
     for (let i = 50; i < rows.length; i++) {
       if (String(rows[i][off] ?? "").trim().toUpperCase() === "BRG") {
         brgRowIdx = i;
@@ -106,28 +87,19 @@ exports.handler = async (event) => {
         break;
       }
     }
-
     if (brgRowIdx === -1) {
       return json(200,
         { mes: MONTH_NAMES[mi], ano: now.getFullYear(), totalAng: 0, totalCont: 0, consultores: [], ultimasAngariações: [] },
         { "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0" }
       );
     }
-
-    // Detectar estrutura O/R
     const isOR = hasORStructure(rows, Math.max(0, brgRowIdx - 8), brgRowIdx - 1, nameCol);
-
-    // Colunas consoante estrutura
     const fatCol  = isOR ? nameCol + 2 : nameCol + 1;
     const angCol  = isOR ? nameCol + 4 : nameCol + 2;
     const contCol = isOR ? nameCol + 8 : nameCol + 4;
-
-    // Totais BRG
     const brgRow    = rows[brgRowIdx];
     const totalAng  = toInt(brgRow[angCol]);
     const totalCont = toInt(brgRow[contCol]);
-
-    // Consultores
     const consultores = [];
     for (let i = brgRowIdx + 1; i < rows.length; i++) {
       const row   = rows[i];
@@ -140,8 +112,6 @@ exports.handler = async (event) => {
       const cont = toInt(row[contCol]);
       if (ang > 0 || cont > 0) consultores.push({ nome: name, ang, cont });
     }
-
-    // ── Folha MOTHER — últimas angariações BRG/ANG/VO ────────────────────────
     const wsMother = wb.Sheets["MOTHER"];
     const motherRows = wsMother
       ? XLSX.utils.sheet_to_json(wsMother, { header: 1, defval: "" })
@@ -162,13 +132,11 @@ exports.handler = async (event) => {
         data:       fmtDate(row[59]),
         tipo:       String(row[65] ?? "").trim(),
       }));
-
     return json(
       200,
       { mes: MONTH_NAMES[mi], ano: now.getFullYear(), totalAng, totalCont, consultores, ultimasAngariações },
       { "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0" }
     );
-
   } catch (err) {
     console.error("[dados]", err.message);
     return json(500, { erro: err.message });
